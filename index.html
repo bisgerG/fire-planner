@@ -1014,7 +1014,7 @@ function milestones(sim,opts,fireNum){
 }
 
 // ---------- 主流程(分頁懶算 + 開始計算)----------
-let chartData=null, lastCore=null;
+let chartData=null, lastCore=null, mouseX=null;
 let inputsVer=0, coreVer=-1, riskVer=-1, busy=false;
 
 // 從輸入欄位蒐集所有衍生參數(便宜、純讀 DOM)
@@ -1292,13 +1292,39 @@ function drawChart(){
     ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,4,0,7);ctx.fill();ctx.fillText(label+age+'歲',x+6,y-6);};
   mark(d.coastAge,d.p50,'Coast ','#43a047');
   mark(d.fireAge,d.p50,'FIRE ','#fb8c00');
+
+  // Tooltip
+  if(mouseX!==null && mouseX>=ml && mouseX<=ml+pw){
+    const age = Math.round(((mouseX-ml)/pw) * (d.ages[d.ages.length-1]-d.age0) + d.age0);
+    const idx = age - d.age0;
+    if(idx>=0 && idx<d.ages.length){
+      const x=xs(age);
+      ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.setLineDash([2,2]);
+      ctx.beginPath();ctx.moveTo(x,mt);ctx.lineTo(x,mt+ph);ctx.stroke();ctx.setLineDash([]);
+      
+      const v50=d.p50[idx], v10=d.p10[idx], v90=d.p90[idx], vF=d.fire[idx];
+      const ty=mt+20, tx=x+(x>W-130?-125:10);
+      ctx.fillStyle='rgba(26,33,43,0.9)';ctx.fillRect(tx-5,ty-15,120,85);
+      ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;ctx.strokeRect(tx-5,ty-15,120,85);
+      ctx.fillStyle='#fff';ctx.font='bold 12px system-ui';ctx.fillText(age+'歲',tx,ty);
+      ctx.font='11px system-ui';
+      ctx.fillStyle='#4fc3f7';ctx.fillText('中位: '+fmtW(v50),tx,ty+18);
+      ctx.fillStyle='#7f93a6';ctx.fillText('P90: '+fmtW(v90),tx,ty+33);
+      ctx.fillStyle='#7f93a6';ctx.fillText('P10: '+fmtW(v10),tx,ty+48);
+      ctx.fillStyle='#fb8c00';ctx.fillText('目標: '+fmtW(vF),tx,ty+63);
+    }
+  }
 }
 window.addEventListener('resize',()=>drawChart());
 
 // ---------- 標的對照 ----------
 function buildCompare(baseOpts,exp,pension,swr,carryDrag){
   const defs=assetDefs(carryDrag);
+  const mode=$('dispmode').value;
   const fireNum=Math.max(0,(exp-pension))/swr;
+  const rIdx=baseOpts.retire-baseOpts.age0;
+  const conv=(v)=>mode==='nom'?v*Math.pow(1+baseOpts.infl,rIdx):v;
+
   const presets=[
     {n:'100% VT',w:{VT:1}},
     {n:'100% VTI',w:{VTI:1}},
@@ -1317,13 +1343,13 @@ function buildCompare(baseOpts,exp,pension,swr,carryDrag){
     const oo=Object.assign({},o,{blendedReal:br-baseOpts.infl});
     const sim=simulate(w,defs,oo);
     const ms=milestones(sim,oo,fireNum);
-    const vMed=percentile(sim.VatRetire,0.5),vP10=percentile(sim.VatRetire,0.10);
+    const vMed=conv(percentile(sim.VatRetire,0.5)),vP10=conv(percentile(sim.VatRetire,0.10));
     const ddMed=percentile(sim.maxDDarr,0.5);
     const tr=document.createElement('tr');
     const isYou=pr.n.startsWith('★');
     tr.innerHTML=`<td>${isYou?'<b>'+pr.n+'</b>':pr.n}</td><td>${pct(br)}</td>
       <td>${ms.coastAge?ms.coastAge+'歲':'—'}</td><td>${fmtW(vMed)}</td>
-      <td class="${vP10<fireNum?'bad':''}">${fmtW(vP10)}</td>
+      <td class="${vP10<conv(fireNum)?'bad':''}">${fmtW(vP10)}</td>
       <td class="${ddMed>0.6?'bad':(ddMed>0.45?'warn':'')}">${pct(ddMed)}</td>`;
     if(isYou)tr.style.background='#16222c';
     tb.appendChild(tr);
@@ -1334,6 +1360,9 @@ function buildCompare(baseOpts,exp,pension,swr,carryDrag){
 function buildMechCompare(baseOpts,defs){
   const w=getWeights();
   const br=blendedMuNom(w,defs);
+  const mode=$('dispmode').value;
+  const rIdx=baseOpts.retire-baseOpts.age0;
+  const conv=(v)=>mode==='nom'?v*Math.pow(1+baseOpts.infl,rIdx):v;
   const o=Object.assign({},baseOpts,{paths:1000,blendedReal:br-baseOpts.infl});
   const mechs=[
     {n:'純偏離帶再平衡',m:'rebal',ph:'不預測(Merton)'},
@@ -1346,7 +1375,7 @@ function buildMechCompare(baseOpts,defs){
   const tb=$('mcmp').querySelector('tbody');tb.innerHTML='';
   mechs.forEach(mc=>{
     const sim=simulate(w,defs,Object.assign({},o,{mech:mc.m}));
-    const vMed=percentile(sim.VatRetire,0.5),vP10=percentile(sim.VatRetire,0.10),vP90=percentile(sim.VatRetire,0.90),ddMed=percentile(sim.maxDDarr,0.5);
+    const vMed=conv(percentile(sim.VatRetire,0.5)),vP10=conv(percentile(sim.VatRetire,0.10)),vP90=conv(percentile(sim.VatRetire,0.90)),ddMed=percentile(sim.maxDDarr,0.5);
     const isCur=mc.m===curMech;
     const tr=document.createElement('tr');
     tr.innerHTML=`<td>${isCur?'<b>▸ '+mc.n+'(目前)</b>':mc.n}</td><td>${fmtW(vMed)}</td>`+
@@ -1529,6 +1558,17 @@ $('qldfin').addEventListener('input',refreshL2Display);
 $('qldfin').addEventListener('change',markDirty);
 ['age','retire','net','mon','exp','pension','infl','swr','dcaMonths','glide','glideStart','mech','flexW','engine'].forEach(id=>$(id).addEventListener('change',markDirty));
 $('dispmode').addEventListener('change',()=>{if(lastCore)applyDisplayMode();}); // 只切實質/名目顯示,不重新模擬
+
+const mc=$('mainChart');
+if(mc){
+  mc.addEventListener('mousemove',e=>{
+    const rect=mc.getBoundingClientRect();
+    mouseX=(e.clientX-rect.left);
+    drawChart();
+  });
+  mc.addEventListener('mouseleave',()=>{mouseX=null;drawChart();});
+}
+
 document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>showTab(+b.dataset.tab)));
 // ▶ 開始計算:強制重新抽樣 → 算完跳「結果」→ 接著背景把「風險與對照」也算好(切過去就不必再等)
 $('startBtn').addEventListener('click',()=>{coreVer=-1;riskVer=-1;ensureCore(()=>{showTab(2);ensureRisk();});});
