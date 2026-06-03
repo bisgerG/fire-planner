@@ -137,6 +137,23 @@
   table.cmptbl td.worst{color:var(--bad);font-weight:700}
   table.cmptbl th:first-child,table.cmptbl td:first-child{color:var(--mut);font-weight:600}
   table.cmptbl tr.grp td{color:var(--acc);font-weight:700;background:#172029;text-align:left}
+  /* 導覽頁:市場比較 + 範本卡 */
+  .famcmp{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:10px 0}
+  .famcmp table{font-size:12.5px}
+  .famcmp th,.famcmp td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}
+  .famcmp th{color:var(--mut);font-weight:600}
+  .famtoggle{display:flex;gap:8px;margin:12px 0 10px;flex-wrap:wrap}
+  .famtoggle button{flex:1;min-width:160px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+    border-radius:9px;padding:10px;font-size:14px;font-weight:600;cursor:pointer}
+  .famtoggle button.active{border-color:var(--acc);color:var(--acc);background:#16222c}
+  .presetcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(225px,1fr));gap:10px}
+  .pcard{background:linear-gradient(160deg,#1d2733,#172029);border:1px solid var(--line);border-radius:11px;
+    padding:13px 14px;cursor:pointer;transition:border-color .15s}
+  .pcard:hover{border-color:var(--acc)}
+  .pcard .pt{font-size:14.5px;font-weight:700;margin-bottom:3px}
+  .pcard .pw{font-size:12px;color:#cdd9e4;margin:5px 0}
+  .pcard .pm{font-size:11.5px;color:var(--mut)} .pcard .pm b{color:#cdd9e4}
+  .pcard .pwho{font-size:11.5px;color:var(--mut);margin-top:6px;border-top:1px dashed var(--line);padding-top:6px;line-height:1.55}
   /* 區塊徽章:必填/選填 */
   .pill.must{color:#ffd9d4;border-color:#6b2b2b;background:#3a1e1e}
   .pill.opt{color:#a8c7da;border-color:var(--line)}
@@ -232,6 +249,30 @@
           <dt>蒙地卡羅模擬</dt><dd>用上千條隨機市場路徑模擬未來,給出<b>機率分布</b>而非單一預測。</dd>
         </dl>
       </details>
+
+      <h3 style="margin-top:24px">🧭 想直接套個起點?選一個範本(選填)</h3>
+      <p class="small mut" style="margin-top:0">下面是依本工具回測整理的<b>範例配置(教學用、非投資建議)</b>。先選市場、再選風險等級;點下去會幫你帶入「投資組合與策略」,你的<b>年齡/資產/月投入等個人數字不會被改</b>。</p>
+
+      <div class="famcmp">
+        <table>
+          <thead><tr><th>比較</th><th>🇹🇼 純台股</th><th>🌐 美股 / 全球</th></tr></thead>
+          <tbody>
+            <tr><td>取得門檻</td><td class="good">本土券商即可</td><td class="warn">需複委託 / 海外券商</td></tr>
+            <tr><td>計價 · 匯率</td><td class="good">台幣,無匯差</td><td class="warn">USD,<b>有匯差風險</b></td></tr>
+            <tr><td>稅務</td><td class="good">單純</td><td>股息預扣 30%</td></tr>
+            <tr><td>分散度</td><td class="warn">0050 集中台積電(約半)</td><td class="good">VT 全球最分散</td></tr>
+            <tr><td>槓桿引擎</td><td>正二(逆價差浮動)</td><td>QLD(融資≈美元利率)</td></tr>
+          </tbody>
+        </table>
+        <p class="small mut" style="margin:6px 0 0">一句話:<b>怕麻煩、要台幣計價、最熟悉 → 台股</b>;<b>不怕開複委託、要最佳全球分散 → 美股/全球</b>(但要承受匯差與 30% 股息預扣)。報酬上兩者相近,別只看市場、要看你選的風險等級。</p>
+      </div>
+
+      <div class="famtoggle" id="famToggle">
+        <button type="button" data-fam="TW" class="active">🇹🇼 純台股(免複委託)</button>
+        <button type="button" data-fam="US">🌐 美股 / 全球(需複委託)</button>
+      </div>
+      <div id="presetCards" class="presetcards"></div>
+      <p class="small mut" style="margin-top:8px">「回撤」=退休前可能經歷的最深帳面跌幅(本工具回測中位)。<b>連「保守」都約 −20%,沒有零回撤的股票組合</b>。點任一張會套入設定並跳到「1·設定」讓你檢視微調。</p>
 
       <div class="cta" style="margin-top:18px">
         <button class="btn big" id="goSetup" type="button">▶ 我準備好了,開始規劃</button>
@@ -515,6 +556,7 @@
     </div>
     <div class="sbox" id="ddBox" style="margin-top:12px"></div>
     <div id="successBox" class="levbox" style="margin-top:12px"></div>
+    <div id="adviceBox" class="levbox" style="margin-top:12px;display:none"></div>
   </div>
 
   <!-- 圖 -->
@@ -1217,6 +1259,7 @@ function computeCore(done){
         sb.innerHTML=`<span class="small mut">🏁 退休成功率:年金已覆蓋全部年支出(或退休年齡已到),無需從本金提領。</span>`;
       }
     }
+    buildAdvice(ci,w,sim,ms,pFire); // 規則式理財體檢
     applyDisplayMode(); // 建 chartData + 畫圖
     coreVer=inputsVer;
     const b2=document.querySelector('#tabs button[data-tab="2"]');if(b2)b2.classList.remove('stale');
@@ -1880,6 +1923,67 @@ function renderCompare(snaps,res){
   if($('cmpResult'))$('cmpResult').innerHTML=html;
 }
 
+// ================= 起點範本(導覽頁) =================
+// 權重與風險級距已用本工具引擎回測校準(見 tests/run_presets.js)。只帶入「投組+策略」,不動個人數字。
+const PRESETS_NAV = [
+  {id:'tw1',fam:'TW',emoji:'🟢',name:'保守',w:{TW50:45,BOND:10,CASH:45},mech:'rebal',glide:0,glideStart:45,flexW:1,dca:0,swr:3.5,dd:'約 −22%',who:'想參與市場但風險承受低、新手起步;不開槓桿。'},
+  {id:'tw2',fam:'TW',emoji:'🟡',name:'穩健',w:{TW50:35,L2:20,CASH:45},mech:'both',glide:1,glideStart:45,flexW:1,dca:0,swr:3.5,dd:'約 −28%',who:'認同槓桿但要克制,留大量現金準備金。'},
+  {id:'tw3',fam:'TW',emoji:'🟠',name:'積極',w:{TW50:30,L2:40,CASH:30},mech:'both',glide:1,glideStart:45,flexW:1,dca:12,swr:3.5,dd:'約 −41%',who:'年輕、距退休>20年、薪水能補、扛得住 −40% 以上。'},
+  {id:'tw4',fam:'TW',emoji:'🔴',name:'高曝險',w:{TW50:25,L2:50,CASH:25},mech:'both',glide:1,glideStart:45,flexW:1,dca:24,swr:3.5,dd:'約 −46%',who:'完全理解尾部風險、純閒錢、有紀律照表抄底。'},
+  {id:'tw5',fam:'TW',emoji:'🛡',name:'守成・近退休',w:{TW50:30,BOND:30,CASH:40},mech:'rebal',glide:0,glideStart:45,flexW:1,dca:0,swr:3.25,dd:'約 −12%',who:'距退休<10年或已退休、要保本、壓低序列風險。'},
+  {id:'us1',fam:'US',emoji:'🟢',name:'保守',w:{VT:50,BOND:10,CASH:40},mech:'rebal',glide:0,glideStart:45,flexW:1,dca:0,swr:3.5,dd:'約 −18%',who:'全球分散、不開槓桿;低風險承受、新手起步。'},
+  {id:'us2',fam:'US',emoji:'🟡',name:'穩健',w:{VTI:35,QLD:20,CASH:45},mech:'both',glide:1,glideStart:45,flexW:1,dca:0,swr:3.5,dd:'約 −24%',who:'認同槓桿但要克制;美股核心+少量 QLD。'},
+  {id:'us3',fam:'US',emoji:'🟠',name:'積極',w:{VTI:30,QLD:40,CASH:30},mech:'both',glide:1,glideStart:45,flexW:1,dca:12,swr:3.5,dd:'約 −39%',who:'年輕、長年限、扛得住 −40% 上下。'},
+  {id:'us4',fam:'US',emoji:'🔴',name:'高曝險',w:{VTI:25,QLD:50,CASH:25},mech:'both',glide:1,glideStart:45,flexW:1,dca:24,swr:3.5,dd:'約 −45%',who:'完全理解尾部風險、純閒錢、有紀律。'},
+  {id:'us5',fam:'US',emoji:'🛡',name:'守成・近退休',w:{VT:35,BOND:30,CASH:35},mech:'rebal',glide:0,glideStart:45,flexW:1,dca:0,swr:3.25,dd:'約 −11%',who:'距退休<10年或已退休、要保本。'},
+];
+let navFam='TW';
+function presetWeightStr(w){return ORDER.filter(k=>w[k]).map(k=>SHORT[k]+w[k]).join(' / ');}
+function renderPresetCards(){
+  const host=$('presetCards');if(!host)return;host.innerHTML='';
+  PRESETS_NAV.filter(p=>p.fam===navFam).forEach(p=>{
+    const div=document.createElement('div');div.className='pcard';
+    div.innerHTML=`<div class="pt">${p.emoji} ${p.name}</div>`+
+      `<div class="pw">${presetWeightStr(p.w)}%</div>`+
+      `<div class="pm">回測回撤中位 <b>${p.dd}</b></div>`+
+      `<div class="pwho">${p.who}</div>`;
+    div.onclick=()=>applyPreset(p.id);
+    host.appendChild(div);
+  });
+}
+function applyPreset(id){
+  const p=PRESETS_NAV.find(x=>x.id===id);if(!p)return;
+  ORDER.forEach(k=>{const el=$('n_'+k);if(el)el.value=p.w[k]||0;});
+  if($('mech'))$('mech').value=p.mech;
+  if($('glide'))$('glide').value=String(p.glide);
+  if($('glideStart'))$('glideStart').value=p.glideStart;
+  if($('flexW'))$('flexW').value=String(p.flexW);
+  if($('dcaMonths'))$('dcaMonths').value=p.dca;
+  if($('swr'))$('swr').value=p.swr;
+  refreshL2Display();updateWsum();markDirty();showTab(1); // 不動個人數字;跳設定頁檢視
+}
+
+// ================= 結果頁:規則式理財體檢 =================
+function buildAdvice(ci,w,sim,ms,pFire){
+  const box=$('adviceBox');if(!box)return;
+  const netExp=netExposure(w);
+  const ddP90=percentile(sim.maxDDarr,0.9);
+  const age0=ci.age0,retire=ci.retire,bondW=w.BOND||0;
+  const items=[];
+  if(netExp>1.5) items.push(['🔴',`你的淨曝險偏高(<b>${(netExp*100).toFixed(0)}%</b>,>150% 算積極)。先確認壞情境一度 <b>−${(ddP90*100).toFixed(0)}%</b> 也抱得住,或到「1.4 進階設定」開『隨齡降槓』。`]);
+  if(pFire<0.5) items.push(['📌',`達標把握偏低(<b>${(pFire*100).toFixed(0)}%</b>)。最有效的三個調整:<b>提高每月投入</b>、<b>延後退休年齡</b>、<b>降低年支出</b>;加槓桿不是首選(它同時放大回撤)。`]);
+  else if(pFire>=0.85 && netExp>1.2) items.push(['✅',`你已很可能達標(<b>${(pFire*100).toFixed(0)}%</b>),其實不必冒這麼高的槓桿風險。可考慮<b>降低曝險守成</b>,把成果保住。`]);
+  if(ms.coastAge!=null && ms.coastAge<=retire) items.push(['🟢',`你約 <b>${ms.coastAge} 歲</b>達成 Coast FIRE:之後就算不再為退休加碼存錢,光複利也能在退休時達標。`]);
+  if(ddP90>0.7) items.push(['⚠️',`壞情境回撤可能達 <b>−${(ddP90*100).toFixed(0)}%</b>。上槓桿前先誠實問自己:「真的跌成這樣,我抱得住、不會砍在最低嗎?」`]);
+  if(!ci.flexWithdraw && netExp>1.0) items.push(['💡','建議到「1.4 進階設定」開『彈性提領』(跌時少花),是最便宜的退休保險,能明顯提高成功率。']);
+  if((retire-age0)<=10 && netExp>1.0 && bondW<0.05) items.push(['💡','已接近退休卻仍有槓桿、且幾乎沒有債券:建議開『隨齡降槓』或加點債,壓低「退休前夕碰崩盤」的順序風險。']);
+  if(!items.length) items.push(['🟢','你的計畫看起來相當平衡。可到「⚖ 比較」把這版存成快照,再試幾組配置並排比較。']);
+  box.style.display='block';
+  box.innerHTML='<div style="font-weight:700;margin-bottom:6px">🩺 給你的理財體檢(依你輸入的數字)</div>'+
+    items.slice(0,4).map(it=>`<div class="small" style="margin:5px 0;line-height:1.6">${it[0]} ${it[1]}</div>`).join('')+
+    '<div class="small mut" style="margin-top:8px">以上為依模擬結果的<b>規則式提醒、非投資建議</b>;市場有不確定性,請依自身狀況判斷。</div>';
+}
+
 // ---------- init ----------
 buildWeights();
 const hadSaved=loadSettings();
@@ -1928,6 +2032,13 @@ if($('snapImportBtn'))$('snapImportBtn').addEventListener('click',()=>$('snapImp
 if($('snapImportFile'))$('snapImportFile').addEventListener('change',e=>{if(e.target.files&&e.target.files[0]){snapImport(e.target.files[0]);e.target.value='';}});
 if($('cmpRunBtn'))$('cmpRunBtn').addEventListener('click',runCompare);
 renderSnapshots();
+// 導覽頁起點範本
+document.querySelectorAll('#famToggle button').forEach(b=>b.addEventListener('click',()=>{
+  navFam=b.dataset.fam;
+  document.querySelectorAll('#famToggle button').forEach(x=>x.classList.toggle('active',x===b));
+  renderPresetCards();
+}));
+renderPresetCards();
 refreshL2Display();
 updateWsum(); // 還原設定後刷新圓餅/淨曝險顯示
 $('reloadCarry').addEventListener('click',()=>loadCarry(true));
