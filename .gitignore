@@ -3,6 +3,9 @@ _*.js
 *.tmp
 wizard.html
 
+# 測試產物(由 tests/extract_logic.js 自動生成)
+tests/temp_test_core.js
+
 # 相依套件
 node_modules/
 

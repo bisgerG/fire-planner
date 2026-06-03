@@ -1,9 +1,9 @@
 # Coast FIRE 規劃器
 
-> 槓桿指數投資 + 準備金紀律的 **Coast FIRE** 規劃器。
+> 槓桿指數投資 ＋ 準備金紀律的 **Coast FIRE** 規劃器。
 > 單一 HTML、純前端、**離線運算、財務數字不外傳**;所有報酬皆為前瞻假設、非預測。
 
-線上使用(部署後):**https://bisgerg.github.io/fire-planner/**
+🔗 線上使用:**https://bisgerg.github.io/fire-planner/**
 
 ---
 
@@ -15,26 +15,51 @@
 - 退休金夠不夠用到老(真實提領模擬,含序列風險);
 - 用槓桿會把報酬與**回撤**各放大成什麼樣子。
 
+> 設計上以**新手友善**為原則:有專屬的「使用導覽」頁、每個欄位都附白話提示與「不確定就填 X」的引導,進階參數預設折疊收起、用預設即可。
+
 ## 特色
 
-- **分頁式流程**:`使用導覽 → 設定 → 結果 → 風險與對照 → 觀念與來源`。
+- **分頁式流程**,資訊由淺入深:
+  - `使用導覽` → `1 · 設定` → `2 · 結果` → `3 · 風險與對照` → `4 · 觀念與來源`
+  - 設定頁再分成 **1.1 基本財務 / 1.2 經濟假設 / 1.3 投資組合 / 1.4 進階策略(選填)** 四組。
 - **兩種模擬引擎**:
-  - **參數化抽樣**(常態 + 肥尾 Student‑t,可自由設定年化/波動,平滑);
-  - **歷史 block‑bootstrap**:用 **美股 + 美債 1928–2024 真實年報酬**(Damodaran NYU Stern)整段抽樣,保留**失落十年 / 序列風險 / 崩盤相關性**——通常會讓槓桿配置看起來更危險(這才是真相)。
-- **正二/QLD 建模**:`2 × 標的 − 波動耗損 − 內扣 − 逆價差/融資`,逆價差/波動耗損/融資皆為可調滑桿。
-- **五種「現金回市場機制」**:再平衡 + 崩盤加碼(預設)/ 純再平衡 / 純崩盤加碼(−12/−22/−32/−42)/ 深觸發原型712 / 買進持有,附**實際操作手法**。
-- **歷史崩盤壓測**:把 1990 失落十年、2000 網路泡沫、2008 海嘯、2020 COVID 套到你的配置,與純 0050 對照。
-- **最大回撤、退休成功率、生命週期降槓、分批進場、彈性提領**等。
+  - **參數化抽樣**(常態 ＋ 肥尾 Student‑t,可自由設定年化/波動,平滑);
+  - **歷史 block‑bootstrap**:用 **美股 ＋ 美債 1928–2024 真實年報酬**(Damodaran, NYU Stern)整段抽樣,保留**失落十年 / 序列風險 / 崩盤相關性**——通常會讓槓桿配置看起來更危險(這才是真相)。
+- **正二/QLD 建模**:`2 × 標的 − 波動耗損 − 內扣 − 逆價差/融資`,逆價差/波動耗損/融資皆為可調滑桿(預設折疊,用預設即可)。
+- **五種「現金回市場機制」**:再平衡 ＋ 崩盤加碼(預設)/ 純再平衡 / 純崩盤加碼(−12/−22/−32/−42)/ 深觸發原型712 / 買進持有,皆附**實際操作手法**。
+- **歷史崩盤壓測**:把 1990 失落十年、2000 網路泡沫、2008 金融海嘯、2020 COVID 套到你的配置,並與純 0050 並排對照。
+- **最大回撤、退休成功率、生命週期降槓、分批進場、彈性提領**等完整功能。
 - **逆價差自動更新**:GitHub Action 每月計算近 5 年台股 2x 逆價差,寫入 `carry.json`。
-- 設定自動存於瀏覽器 `localStorage`,下次打開沿用。
+- 設定自動存於瀏覽器 `localStorage`,下次打開沿用(可按「↺ 重設」清除)。
 
 ## 檔案結構
 
 ```
-index.html                      # 主程式(自包含:HTML + CSS + JS + 內嵌歷史資料)
-carry.json                      # 逆價差估計值(GitHub Action 每月更新)
-scripts/update_carry.js         # 逆價差計算腳本(Node,抓 Yahoo 0050/00631L 做 OLS)
-.github/workflows/update-carry.yml  # 每月排程 + 手動觸發,提交 carry.json
+index.html                          # 主程式(自包含:HTML + CSS + JS + 內嵌歷史資料)
+carry.json                          # 逆價差估計值(GitHub Action 每月更新)
+scripts/update_carry.js             # 逆價差計算腳本(Node,抓 Yahoo 0050/00631L 做 OLS)
+tests/extract_logic.js              # 從 index.html 抽出核心運算、注入 mock DOM 供 Node 測試
+tests/stress_test.js                # 對核心模擬做數值健全性(sanity)壓測
+.github/workflows/update-carry.yml  # 每月排程 ＋ 手動觸發,提交 carry.json
+```
+
+## 本機開發與測試
+
+純靜態,直接用瀏覽器打開 `index.html` 即可開發(或用任意靜態伺服器,如 `npx serve`)。
+
+跑核心邏輯測試(需 Node):
+
+```bash
+node tests/extract_logic.js   # 由 index.html 產生 tests/temp_test_core.js
+node tests/stress_test.js     # 對抽出的核心做數值壓測
+```
+
+> `tests/temp_test_core.js` 為自動產生的中介檔,已列入 `.gitignore`。
+
+手動更新逆價差(平時由 GitHub Action 自動執行):
+
+```bash
+node scripts/update_carry.js  # 重新計算並寫回 carry.json
 ```
 
 ## 部署(GitHub Pages)
@@ -45,15 +70,15 @@ scripts/update_carry.js         # 逆價差計算腳本(Node,抓 Yahoo 0050/0063
 
 ## 方法論與資料來源
 
-- **歷史報酬**:Damodaran(NYU Stern)美股 S&P 500、10 年期美債年報酬 1928–2024;CPI 換算實質。
+- **歷史報酬**:Damodaran(NYU Stern)美股 S&P 500、10 年期美債年報酬 1928–2024;以 CPI 換算實質。
 - **逆價差驗證**:台灣證交所報酬指數、Yahoo Finance(0050 / 00631L)。
-- 歷史模式中,台股/QQQ 等以**美股史代理**序列形狀(台股長期可靠資料不易取得),年內崩盤會被平滑;台股專屬的 1990 −80% 崩盤另見「歷史崩盤壓測」。
+- 歷史模式中,台股/QQQ 等以**美股史代理**序列形狀(台股長期可靠資料不易取得),年內崩盤會被平滑;台股專屬的 1990 −80% 崩盤另見「3 · 風險與對照」的歷史崩盤壓測。
 
 ## 參考來源(策略概念)
 
 - **大仁哥 / Capufish**(letf.com.tw 部落格、《槓桿 ETF 投資法》、PTT):50:50 槓桿配置、偏離帶再平衡、曝險刻度、生命週期、行為層。
-- **onekoni**(PTT):準備金提列「712」框架 + 崩盤漸進加碼(−12/−22/−32/−42)。
-- 學術:Bengen / Trinity(SWR)、Ayres‑Nalebuff(生命週期投資)、Merton / Perold‑Sharpe(固定比例/CPPI)、Markowitz‑Graham‑Bernstein(50:50 後悔最小化)。
+- **onekoni**(PTT):準備金提列「712」框架 ＋ 崩盤漸進加碼(−12/−22/−32/−42)。
+- 學術:Bengen / Trinity(SWR)、Ayres‑Nalebuff(生命週期投資)、Merton / Perold‑Sharpe(固定比例 / CPPI)、Markowitz‑Graham‑Bernstein(50:50 後悔最小化)。
 
 ## ⚠️ 免責聲明
 

@@ -65,6 +65,9 @@
   table{width:100%;border-collapse:collapse;font-size:13px}
   th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right}
   th:first-child,td:first-child{text-align:left}
+  /* 歷史崩盤壓測表:「配置」欄標籤(你的配置/純0050 基準)靠左對齊,兩列才會切齊 */
+  #scen th:nth-child(2){text-align:left}
+  #scen td.cfgcell{text-align:left}
   th{color:var(--mut);font-weight:600}
   .btn{background:var(--acc);color:#04222e;border:none;border-radius:8px;padding:10px 16px;
     font-size:14px;font-weight:700;cursor:pointer}
@@ -116,6 +119,17 @@
   .prog{height:8px;border-radius:5px;background:#2a3744;overflow:hidden;margin:14px auto 0;max-width:360px;display:none}
   .prog.show{display:block}
   .prog>span{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
+  /* 欄位小字提示(CTA / 該填什麼) */
+  .field .hint{font-size:11px;color:var(--mut);margin-top:3px;line-height:1.5}
+  /* 區塊徽章:必填/選填 */
+  .pill.must{color:#ffd9d4;border-color:#6b2b2b;background:#3a1e1e}
+  .pill.opt{color:#a8c7da;border-color:var(--line)}
+  h2 .pill{font-size:11px;font-weight:600;vertical-align:middle;margin-left:7px}
+  /* 進階折疊區:外層摺疊,內含各進階欄位 */
+  details.advbox{background:transparent;border:1px dashed var(--line);padding:0}
+  details.advbox>summary{padding:12px 14px;font-size:14.5px;color:var(--acc)}
+  details.advbox[open]>summary{border-bottom:1px dashed var(--line);margin-bottom:6px}
+  details.advbox>.advinner{padding:4px 14px 12px}
   /* 全域可讀性:展開卡/清單行距放鬆,避免文字牆 */
   details p{line-height:1.72;margin:8px 0}
   details li{line-height:1.7;margin-bottom:5px}
@@ -211,16 +225,17 @@
   </section>
 
   <section class="tab" id="tab1" style="display:none">
-  <!-- 輸入 -->
+  <!-- 1.1 基本財務 -->
   <div class="panel">
-    <h2>① 你的狀況</h2>
+    <h2>1.1 你的基本財務狀況 <span class="pill must">★必填</span></h2>
+    <p class="sub" style="margin-top:-4px">先填這幾格就能開始算,大約 1 分鐘。不確定的欄位,照下面灰字提示填即可。</p>
     <div class="grid g3">
-      <div class="field"><label>目前年齡</label><input type="number" id="age" value="35"></div>
-      <div class="field"><label>目標退休年齡(Coast 終點)</label><input type="number" id="retire" value="65"></div>
-      <div class="field"><label>目前可投資淨資產(萬)</label><input type="number" id="net" value="50"></div>
-      <div class="field"><label>每月再投入(萬)</label><input type="number" id="mon" value="1" step="0.1"></div>
-      <div class="field"><label>目前年支出(萬,今天購買力)</label><input type="number" id="exp" value="35"></div>
-      <div class="field"><label>退休後年金/勞退(萬/年,可填0)</label><input type="number" id="pension" value="0"></div>
+      <div class="field"><label>目前年齡</label><input type="number" id="age" value="35"><div class="hint">你現在幾歲</div></div>
+      <div class="field"><label>預計退休年齡</label><input type="number" id="retire" value="65"><div class="hint">打算幾歲不再為錢工作?不確定就填 65</div></div>
+      <div class="field"><label>目前可投資資產(萬)</label><input type="number" id="net" value="50"><div class="hint">能投入市場的錢,<b>含</b>當崩盤抄底用的準備金現金;但<b>不含</b>自住房、以及放在投資之外的 6 個月緊急生活費</div></div>
+      <div class="field"><label>每月可再投入(萬)</label><input type="number" id="mon" value="1" step="0.1"><div class="hint">薪水扣掉開銷後,每月能持續投資的錢</div></div>
+      <div class="field"><label>目前一年生活費(萬)</label><input type="number" id="exp" value="35"><div class="hint">你一年大概花多少?這直接決定 FIRE 目標</div></div>
+      <div class="field"><label>退休後年金/勞退(萬/年)</label><input type="number" id="pension" value="0"><div class="hint">退休後每年可領的勞退/年金,沒有就填 0</div></div>
     </div>
     <details style="margin-top:4px">
       <summary>ⓘ 年支出預設 35 萬怎麼來的?要不要改成自己的?</summary>
@@ -228,110 +243,26 @@
       <p><b>強烈建議改成「你自己的」年支出</b>——FIRE 算的是<b>你想要的退休生活水準</b>,不是平均值。它直接決定你的 FIRE 目標金額(= 年支出 ÷ 提領率)。</p>
       <p class="mut"><b>退休後會一樣嗎?</b>不一定:退休族通常比工作時<b>少花約一兩成</b>(房貸繳清、通勤/治裝減少),但<b>晚年醫療、長照可能回升</b>。本工具把退休支出當「實質固定」,屬<b>偏保守</b>的假設(寧可抓多、別抓少)。</p>
     </details>
+  </div>
+
+  <!-- 1.2 經濟假設 -->
+  <div class="panel">
+    <h2>1.2 經濟假設 <span class="pill opt">可用預設</span></h2>
+    <p class="sub" style="margin-top:-4px">不確定就直接沿用預設值。這些只微調計算的保守程度,不影響你能不能開始算。</p>
     <div class="grid g3">
-      <div class="field"><label>通膨率 %</label><input type="number" id="infl" value="2" step="0.1"></div>
-      <div class="field"><label>安全提領率 SWR %</label><input type="number" id="swr" value="3.5" step="0.1"></div>
-      <div class="field"><label>顯示模式</label>
+      <div class="field"><label>通膨率 %</label><input type="number" id="infl" value="2" step="0.1"><div class="hint">物價每年上漲幅度,不確定就用 2</div></div>
+      <div class="field"><label>每年提領率 SWR %</label><input type="number" id="swr" value="3.5" step="0.1"><div class="hint">退休後每年從資產領出來花的比例,不確定就用 3.5</div></div>
+      <div class="field"><label>金額顯示方式</label>
         <select id="dispmode" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
-          <option value="real" selected>今天購買力(實質)</option>
-          <option value="nom">名目金額</option>
+          <option value="real" selected>實質購買力(現在的錢)</option>
+          <option value="nom">名目金額(未來的數字)</option>
         </select>
+        <div class="hint">建議用「實質購買力」,避免被未來大數字誤導</div>
       </div>
     </div>
-    <div class="grid g3">
-      <div class="field"><label>分批進場:幾個月內投完(0=一次全投)</label><input type="number" id="dcaMonths" value="0" min="0" max="120" step="1"></div>
-      <div class="field" style="grid-column:span 2;display:flex;align-items:flex-end"><span class="small mut">設幾個月,就「<b>每月投一次</b>、平均分批投完」(例如 24 = 分 24 個月、每月一筆)。0 = 一次全投。會直接改變下方模擬。</span></div>
-    </div>
-    <details style="margin-top:4px">
-      <summary>ⓘ 分批進場是什麼?該設幾個月?</summary>
-      <p><b>分批進場 = 把一大筆錢分成數個月、每月陸續投入,而不是一次全壓。</b>它防的是「<b>買在高點、然後馬上崩</b>」這個進場時機風險。</p>
-      <p><b>誠實的取捨(本工具實測):</b></p>
-      <ul>
-        <li><b>長期(30 年退休終值):一筆全投平均略勝</b>——市場長期向上,越早投賺越多;分批等於手裡留現金、有機會成本。</li>
-        <li><b>但「進場頭 3 年的最大回撤」分批較淺</b>(實測中位 23%→19%、壞情境 40%→34%,看圖下方讀數)。它保護的是「剛進場就重傷、心態崩掉、提前出場」的短期風險。</li>
-      </ul>
-      <p><b>該設幾個月:</b>① 市場屢創新高、估值貴;② 你「怕買高」;③ <b>你用槓桿(正二/QLD)</b>——歐印槓桿在頂部 = −84% 回撤,最該分批;④ 大資金、無法靠每月薪水攤平。符合越多 → 設越久(12~24 月)。反之(年輕、小資金、純定投、不開槓桿)→ 設 0 月一次全投反而較好。</p>
-      <p class="mut"><b>別跟準備金搞混</b>:準備金(現金部位)全程保留、只在崩盤觸發時抄底;分批管「核心怎麼進場」、準備金管「崩盤怎麼加碼」,兩個是不同工具、一起用。</p>
-    </details>
-    <div class="grid g3">
-      <div class="field"><label>生命週期降槓(glide path)</label>
-        <select id="glide" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
-          <option value="0" selected>關閉(全程維持目標曝險)</option>
-          <option value="1">啟用(隨齡自動降槓)</option>
-        </select>
-      </div>
-      <div class="field"><label>從幾歲開始降槓</label><input type="number" id="glideStart" value="45" min="30" max="70" step="1"></div>
-      <div class="field" style="display:flex;align-items:flex-end"><span class="small mut">啟用後,隨年齡把正二/QLD 逐步移到債券,退休前約降到一半曝險。會直接改變模擬。</span></div>
-    </div>
-    <details style="margin-top:4px">
-      <summary>ⓘ 生命週期降槓(glide path)是什麼?該開嗎?</summary>
-      <p><b>生命週期投資法</b>(Ayres-Nalebuff):年輕時部位小、就算腰斬也是小錢、又有幾十年薪水能補 → 可以多開槓桿;<b>年紀越大、部位越大、能補的薪水越少 → 應該逐步降槓守成</b>,把賺到的果實保住。</p>
-      <p><b>它解決的問題</b>:你 35 歲腰斬是「300 萬變 150 萬」、還有 25 年薪水能補;但 60 歲腰斬是「2000 萬變 1000 萬」、而且<b>沒時間也沒金流補回來了</b>。這叫「退休前夕碰崩盤」風險,是會打爛整個退休計畫的存在性風險。</p>
-      <p><b>工具怎麼做</b>:啟用後,從你設的年齡(預設 45)開始,<b>每年自動把一點正二/QLD 賣掉、換成債券</b>,到退休前把槓桿降約 70%(起始淨曝險 ~107% → 退休前 ~55%)。效果會反映在模擬的<b>較淺回撤、較好的壞情境</b>上(上方「淨曝險」顯示的是起始值)。</p>
-      <p class="mut"><b>該開嗎</b>:想退休前更安穩、怕臨退休碰崩盤 → 開。年輕、還想衝、距退休很遠 → 可先關著,過幾年再開。預設關閉,基準投影不變。</p>
-    </details>
-    <div class="grid g3">
-      <div class="field"><label>模擬引擎</label>
-        <select id="engine" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
-          <option value="param" selected>參數化抽樣(預設,平滑)</option>
-          <option value="hist">歷史重抽 block-bootstrap(真實序列)</option>
-        </select>
-      </div>
-      <div class="field" style="grid-column:span 2;display:flex;align-items:flex-end"><span class="small mut">「歷史重抽」用<b>美國 1928–2024 真實年報酬</b>整段抽樣,保留<b>失落十年 / 序列風險 / 真實崩盤相關性</b>——通常會讓<b>槓桿配置看起來更危險(這才是真相)</b>。只套用在 ④ 機率帶圖。</span></div>
-    </div>
-    <details style="margin-top:4px">
-      <summary>ⓘ 「參數化」vs「歷史重抽」差在哪?該用哪個?</summary>
-      <p><b>參數化抽樣(預設)</b>:用常態+肥尾隨機抽每月報酬。優點:你能<b>自由設定</b>各標的年化/波動、曲線平順、速度快。缺點:<b>各月獨立(iid)、沒有序列記憶</b>——抽不出「連跌四年」「失落十年」這種真實逆境,會<b>系統性高估槓桿的安全性</b>。</p>
-      <p><b>歷史重抽(block-bootstrap)</b>:從<b>美股+美債 1928–2024 真實年報酬</b>中,一次抽一段<b>連續 4–12 年</b>串接成你的年限,所有標的用<b>同一段歷史年份</b>對齊。這樣就保留了<b>動能、均值回歸、失落十年、以及崩盤時相關性一起飆高</b>等真實結構。</p>
-      <p><b>實測差很大</b>:同一個「正二30/VTI33/現金37」,歷史模式的<b>回撤中位 58%→74%、退休成功率 82%→67%</b>——因為真實歷史有 1929–32(−80% 實質)、1970s 停滯、2000–09 失落十年這些 iid 抽不出來的多年序列,槓桿在這些序列裡會被狠咬。<b>這個落差,正是這個功能的價值。</b></p>
-      <p class="mut"><b>誠實限制</b>:① 台股 / QQQ 等以<b>美股史代理</b>其序列形狀(台股長期可靠資料不易取得);② <b>年內崩盤被抹平</b>(COVID 兩個月 −34% 會變成一整年);③ 歷史只有<b>一條已實現路徑</b>(本身也是一種倖存者偏差)。台股專屬的 1990 −80% 崩盤,另見「③ 風險與對照」的歷史崩盤壓測表。</p>
-      <p><b>該用哪個</b>:想看「平順的假設投影、自由調參數」→ <b>參數化</b>;想壓力測「真實多年逆境 / 序列風險對槓桿的傷害」→ <b>歷史重抽</b>。<b>兩個都看最好。</b></p>
-    </details>
-    <div class="grid g3">
-      <div class="field"><label>現金回市場機制</label>
-        <select id="mech" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
-          <option value="both" selected>再平衡 + 崩盤加碼(預設,平衡)</option>
-          <option value="rebal">純偏離帶再平衡(最穩)</option>
-          <option value="reserve">純崩盤加碼 −12/−22/−32/−42(衝報酬)</option>
-          <option value="orig">深觸發原型(正二 −50/−80)</option>
-          <option value="bh">買進持有(完全不調整)</option>
-        </select>
-      </div>
-      <div class="field" style="grid-column:span 2;display:flex;align-items:flex-end"><span class="small mut">決定「手上的現金怎麼回到市場」:賣高買低,還是只在崩盤抄底。會直接改變模擬。</span></div>
-    </div>
-    <details style="margin-top:4px">
-      <summary>ⓘ 現金回市場機制是什麼?怎麼選?(含實際操作手法)</summary>
-      <p><b>你手上的現金(再平衡的另一半 / 準備金),要用什麼規則放回市場?</b>核心是兩種相反哲學:<b>再平衡</b>(對稱、賣高買低、不預測,理論最扎實 Merton)vs <b>崩盤加碼</b>(不對稱、平時讓正二跑、只在崩盤抄底,賭「崩了會反彈」)。</p>
-      <p><b>📋 五種機制的實際操作手法(拿真錢怎麼做):</b></p>
-      <ol>
-        <li><b>再平衡 + 崩盤加碼(預設,平衡)</b>:平時<b>每半年~一年檢查一次</b>,任一部位偏離目標比例超過約 50% 就買賣拉回目標;另外保留的現金,當大盤<b>從高點回撤 −12 / −22 / −32 / −42%</b> 時,<b>分四批 1:2:3:4 買進正二</b>;之後大盤創新高,把超出目標的正二賣回現金、補足準備金。</li>
-        <li><b>純偏離帶再平衡(最穩、最省事)</b>:<b>只做再平衡</b>——每半年~一年檢查,偏離目標 &gt;50% 才動、買賣拉回。寬鬆即可、不必盯盤,常常數年才動一次。不另外留崩盤彈藥。</li>
-        <li><b>純崩盤加碼 −12/−22/−32/−42(衝報酬)</b>:多頭時<b>讓正二自由跑、不賣</b>;只在大盤回撤到那四個門檻時,用現金<b>分 1:2:3:4 買進</b>;創新高後補回現金。不做日常再平衡。</li>
-        <li><b>深觸發原型712(正二 −50/−80)</b>:只在<b>跌很深</b>(正二自身 −50%、−80%,約等於大盤 −25%、−40%)才<b>分兩大批</b>重壓抄底。觸發次數少、單批很重。</li>
-        <li><b>買進持有(完全不調整)</b>:買了就放著,<b>不再平衡、不加碼</b>。僅供對照——長期通常輸給有紀律的再平衡。</li>
-      </ol>
-      <p><b>怎麼選</b>:想最穩、睡得著 → <b>純再平衡</b>;想兼顧 → <b>兩者並用(預設)</b>;想衝報酬、扛得住 −73% 回撤、相信會反彈 → <b>純崩盤加碼</b>(適合年輕、長年限)。<b>怕買高的你 → 偏再平衡那端。</b></p>
-      <p class="mut">五種機制的報酬 / 回撤 / 壞情境<b>對照數據</b>,見「③ 風險與對照」分頁的機制對照表。</p>
-    </details>
-    <div class="grid g3">
-      <div class="field"><label>退休提領方式</label>
-        <select id="flexW" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
-          <option value="0" selected>固定提領(每年花一樣,不管市場)</option>
-          <option value="1">彈性提領(跌時少花,最低花到目標 70%)</option>
-        </select>
-      </div>
-      <div class="field" style="grid-column:span 2;display:flex;align-items:flex-end"><span class="small mut">彈性提領=壞年份主動少花一點(花到目標的 70~120% 之間),能大幅提高「退休成功率」——是最便宜的退休保險。影響 ③ 的成功率。</span></div>
-    </div>
-    <details style="margin-top:4px">
-      <summary>ⓘ 固定 vs 彈性提領?差在哪?</summary>
-      <p><b>固定提領</b>:不管市場好壞,每年都花一樣的錢(隨通膨調整)。這是 4% 法則的假設,但最危險——剛退休就碰崩盤、又照常花,本金會被加速掏空(序列風險)。</p>
-      <p><b>彈性提領(本工具做法)</b>:把每年支出綁在「當前資產的固定比例」,但設<b>地板 70%、上限 120%</b>。<b>市場跌 → 當年少花一點(最低花到目標的 70%);市場漲 → 多花一點(最高 120%)。</b></p>
-      <p><b>為什麼有效</b>:壞年份少花,等於不在谷底硬賣本金 → 本金撐得更久 → <b>退休成功率明顯提高</b>(實測例如 80%→86%、70%→80%,提領越激進、改善越大)。代價是壞年份要忍受少花(最多砍到目標的 70%)。</p>
-      <p class="mut">這是退休理財最有效、最便宜的保險——比多存錢、晚退休都划算。真實的人本來就會「手頭緊就少花」,固定提領反而不真實。</p>
-    </details>
     <details style="margin-top:4px">
       <summary>ⓘ 通膨率怎麼設?為什麼預設 2%?</summary>
-      <p>通膨讓「同樣的錢」未來買得更少。工具預設用<b>今天購買力</b>顯示,就是把未來金額用通膨還原,避免被名目大數字騙。</p>
+      <p>通膨讓「同樣的錢」未來買得更少。工具預設用<b>實質購買力(現在的錢)</b>顯示,就是把未來金額用通膨還原,避免被名目大數字騙。</p>
       <ul>
         <li><b>2%</b>:台灣長期 CPI 約 1–2%,取 2% 偏保守。</li>
         <li>調高(如 3%)→ 目標金額變大、達成變難(更保守);調低 → 反之。</li>
@@ -350,9 +281,10 @@
     </details>
   </div>
 
-  <!-- 投組 -->
+  <!-- 1.3 投組 -->
   <div class="panel">
-    <h2>② 投資組合(權重加總需 = 100%)</h2>
+    <h2>1.3 你的投資組合 <span class="pill must">★必填</span></h2>
+    <p class="sub" style="margin-top:-4px">決定錢怎麼分配。<b>權重加總需 = 100%</b>(不必自己湊,會自動正規化)。</p>
     <p class="taglegend">每格標示「<b>前瞻基準年化 · 年化波動 · 歷史最大回撤</b>」;<b>點「ⓘ 理由」可展開該標的的完整說明</b>。<br>
     年化為已扣倖存者偏差的<b>前瞻假設</b>(非歷史);波動取近年實測年化值、最大回撤取<b>歷史最深</b>(如 S&P 2008 −55%、Nasdaq 2000 −83%、黃金 2011–15 −45%)。<br>
     標籤:🟢核心打底 · 🟡注意集中/利率 · 🟠進攻、波動大 · 🔴槓桿、尾部風險。<br>
@@ -371,8 +303,9 @@
       </div>
     </div>
     <div id="netExpBox" class="levbox" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"></div>
-    <div class="levbox">
-      <div class="levhead"><span>🔴 正二／QLD 槓桿假設</span></div>
+    <details class="advbox" style="margin-top:14px">
+      <summary>🔴 正二／QLD 槓桿假設 — 用預設即可,想自己調再點開(只在你持有正二/QLD 時才有影響)</summary>
+      <div class="advinner">
       <div class="small" id="l2formula" style="margin:4px 0 2px"></div>
       <div class="small" id="qldformula" style="margin:0 0 11px"></div>
       <div class="grid g3" style="gap:13px">
@@ -400,15 +333,126 @@
         <p><b>② 波動耗損(正二/QLD 共用)</b>:每日重設 2× 槓桿穿越波動的複利損失。理論 σ²≈4.4%(假設天天洗),但實測 0050 vs 完美2x(2016–26)<b>全期實際只 −0.6%</b>(強趨勢年甚至負的,只有盤整年 2018 接近理論)。故預設折衷 <b>1.5%</b>。怕失落十年式盤整 → 拉 3–4%;信續強趨勢 → 拉 0。<b>註:這是共用值——實測台股 0050 近10年≈0%、但美股 QQQ≈2.5%(波動較大);若你重壓 QLD,可把此值上調到 ~2.5%。</b></p>
         <p><b>③ 融資成本(QLD 專用)</b>:美股 2x 靠 SWAP 借錢開槓桿,對借的部分付利息 <b>≈ 美元短率</b>。<b>台股正二沒有這項</b>(它的對應物是逆價差),所以兩者分開算。2010–21 零利率時 ≈ 0(QLD/TQQQ 那時神到爆);現在短率 ~4.3% → 拖累約 4%。預設 <b>+4%</b>(對齊現況);利率走低 → 往左,利率走高 → 往右。實測已驗證:升息後 QLD 成本比零利率時代高約 3.4%,確實跟著利率跑。</p>
       </details>
-    </div>
+      </div>
+    </details>
     <div class="row" style="margin-top:14px">
       <button class="btn ghost" id="resetBtn" type="button" style="padding:4px 11px;font-size:12px">↺ 重設為預設值</button>
       <span class="small mut" id="status"></span>
     </div>
   </div>
 
+  <!-- 1.4 進階策略設定(選填,預設折疊) -->
+  <div class="panel">
+    <h2>1.4 進階策略設定 <span class="pill opt">選填</span></h2>
+    <p class="sub" style="margin-top:-4px"><b>不確定可以全部跳過</b>——直接用預設值按下方「開始計算」就好,之後想微調再回來展開。</p>
+    <details class="advbox">
+      <summary>⚙️ 展開進階設定(分批進場 · 自動降槓 · 模擬方式 · 現金何時進場 · 退休怎麼花)</summary>
+      <div class="advinner">
+        <div class="catlabel first">分批進場</div>
+        <div class="grid g3">
+          <div class="field"><label>分批進場月數</label><input type="number" id="dcaMonths" value="0" min="0" max="120" step="1"><div class="hint">把現有資產分幾個月慢慢投?怕買在高點才需要,不確定就填 0(一次投完)。例如 24 = 分 24 個月、每月一筆,會直接改變模擬。</div></div>
+        </div>
+        <details style="margin-top:4px">
+          <summary>ⓘ 分批進場是什麼?該設幾個月?</summary>
+          <p><b>分批進場 = 把一大筆錢分成數個月、每月陸續投入,而不是一次全壓。</b>它防的是「<b>買在高點、然後馬上崩</b>」這個進場時機風險。</p>
+          <p><b>誠實的取捨(本工具實測):</b></p>
+          <ul>
+            <li><b>長期(30 年退休終值):一筆全投平均略勝</b>——市場長期向上,越早投賺越多;分批等於手裡留現金、有機會成本。</li>
+            <li><b>但「進場頭 3 年的最大回撤」分批較淺</b>(實測中位 23%→19%、壞情境 40%→34%,看圖下方讀數)。它保護的是「剛進場就重傷、心態崩掉、提前出場」的短期風險。</li>
+          </ul>
+          <p><b>該設幾個月:</b>① 市場屢創新高、估值貴;② 你「怕買高」;③ <b>你用槓桿(正二/QLD)</b>——歐印槓桿在頂部 = −84% 回撤,最該分批;④ 大資金、無法靠每月薪水攤平。符合越多 → 設越久(12~24 月)。反之(年輕、小資金、純定投、不開槓桿)→ 設 0 月一次全投反而較好。</p>
+          <p class="mut"><b>別跟準備金搞混</b>:準備金(現金部位)全程保留、只在崩盤觸發時抄底;分批管「核心怎麼進場」、準備金管「崩盤怎麼加碼」,兩個是不同工具、一起用。</p>
+        </details>
+
+        <div class="catlabel">隨年齡自動降低槓桿</div>
+        <div class="grid g3">
+          <div class="field"><label>隨年齡自動降低槓桿</label>
+            <select id="glide" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
+              <option value="0" selected>關閉(全程維持目標曝險)</option>
+              <option value="1">啟用(隨齡自動降槓)</option>
+            </select>
+            <div class="hint">年紀越大越保守、自動把槓桿換成債券。不確定就保持「關閉」</div>
+          </div>
+          <div class="field"><label>從幾歲開始降槓</label><input type="number" id="glideStart" value="45" min="30" max="70" step="1"><div class="hint">啟用後才有作用,常見設 45~50。退休前約降到一半曝險,會直接改變模擬。</div></div>
+        </div>
+        <details style="margin-top:4px">
+          <summary>ⓘ 生命週期降槓(glide path)是什麼?該開嗎?</summary>
+          <p><b>生命週期投資法</b>(Ayres-Nalebuff):年輕時部位小、就算腰斬也是小錢、又有幾十年薪水能補 → 可以多開槓桿;<b>年紀越大、部位越大、能補的薪水越少 → 應該逐步降槓守成</b>,把賺到的果實保住。</p>
+          <p><b>它解決的問題</b>:你 35 歲腰斬是「300 萬變 150 萬」、還有 25 年薪水能補;但 60 歲腰斬是「2000 萬變 1000 萬」、而且<b>沒時間也沒金流補回來了</b>。這叫「退休前夕碰崩盤」風險,是會打爛整個退休計畫的存在性風險。</p>
+          <p><b>工具怎麼做</b>:啟用後,從你設的年齡(預設 45)開始,<b>每年自動把一點正二/QLD 賣掉、換成債券</b>,到退休前把槓桿降約 70%(起始淨曝險 ~107% → 退休前 ~55%)。效果會反映在模擬的<b>較淺回撤、較好的壞情境</b>上(上方「淨曝險」顯示的是起始值)。</p>
+          <p class="mut"><b>該開嗎</b>:想退休前更安穩、怕臨退休碰崩盤 → 開。年輕、還想衝、距退休很遠 → 可先關著,過幾年再開。預設關閉,基準投影不變。</p>
+        </details>
+
+        <div class="catlabel">模擬方式</div>
+        <div class="grid g3">
+          <div class="field"><label>模擬方式</label>
+            <select id="engine" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
+              <option value="param" selected>參數化抽樣(預設,平滑)</option>
+              <option value="hist">歷史重抽 block-bootstrap(真實序列)</option>
+            </select>
+            <div class="hint">「參數化」平順好調;「歷史重抽」用真實崩盤更嚴苛、更接近真相。不確定就用預設(只影響 2.2 機率帶圖)。</div>
+          </div>
+        </div>
+        <details style="margin-top:4px">
+          <summary>ⓘ 「參數化」vs「歷史重抽」差在哪?該用哪個?</summary>
+          <p><b>參數化抽樣(預設)</b>:用常態+肥尾隨機抽每月報酬。優點:你能<b>自由設定</b>各標的年化/波動、曲線平順、速度快。缺點:<b>各月獨立(iid)、沒有序列記憶</b>——抽不出「連跌四年」「失落十年」這種真實逆境,會<b>系統性高估槓桿的安全性</b>。</p>
+          <p><b>歷史重抽(block-bootstrap)</b>:從<b>美股+美債 1928–2024 真實年報酬</b>中,一次抽一段<b>連續 4–12 年</b>串接成你的年限,所有標的用<b>同一段歷史年份</b>對齊。這樣就保留了<b>動能、均值回歸、失落十年、以及崩盤時相關性一起飆高</b>等真實結構。</p>
+          <p><b>實測差很大</b>:同一個「正二30/VTI33/現金37」,歷史模式的<b>回撤中位 58%→74%、退休成功率 82%→67%</b>——因為真實歷史有 1929–32(−80% 實質)、1970s 停滯、2000–09 失落十年這些 iid 抽不出來的多年序列,槓桿在這些序列裡會被狠咬。<b>這個落差,正是這個功能的價值。</b></p>
+          <p class="mut"><b>誠實限制</b>:① 台股 / QQQ 等以<b>美股史代理</b>其序列形狀(台股長期可靠資料不易取得);② <b>年內崩盤被抹平</b>(COVID 兩個月 −34% 會變成一整年);③ 歷史只有<b>一條已實現路徑</b>(本身也是一種倖存者偏差)。台股專屬的 1990 −80% 崩盤,另見「3 · 風險與對照」的歷史崩盤壓測表。</p>
+          <p><b>該用哪個</b>:想看「平順的假設投影、自由調參數」→ <b>參數化</b>;想壓力測「真實多年逆境 / 序列風險對槓桿的傷害」→ <b>歷史重抽</b>。<b>兩個都看最好。</b></p>
+        </details>
+
+        <div class="catlabel">手上現金何時進場</div>
+        <div class="grid g3">
+          <div class="field"><label>手上現金何時進場</label>
+            <select id="mech" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
+              <option value="both" selected>再平衡 + 崩盤加碼(預設,平衡)</option>
+              <option value="rebal">純偏離帶再平衡(最穩)</option>
+              <option value="reserve">純崩盤加碼 −12/−22/−32/−42(衝報酬)</option>
+              <option value="orig">深觸發原型(正二 −50/−80)</option>
+              <option value="bh">買進持有(完全不調整)</option>
+            </select>
+            <div class="hint">決定閒置現金怎麼回到市場:定期賣高買低再平衡、還是只在崩盤抄底?不確定就用預設,會直接改變模擬。</div>
+          </div>
+        </div>
+        <details style="margin-top:4px">
+          <summary>ⓘ 現金回市場機制是什麼?怎麼選?(含實際操作手法)</summary>
+          <p><b>你手上的現金(再平衡的另一半 / 準備金),要用什麼規則放回市場?</b>核心是兩種相反哲學:<b>再平衡</b>(對稱、賣高買低、不預測,理論最扎實 Merton)vs <b>崩盤加碼</b>(不對稱、平時讓正二跑、只在崩盤抄底,賭「崩了會反彈」)。</p>
+          <p><b>📋 五種機制的實際操作手法(拿真錢怎麼做):</b></p>
+          <ol>
+            <li><b>再平衡 + 崩盤加碼(預設,平衡)</b>:平時<b>每半年~一年檢查一次</b>,任一部位偏離目標比例超過約 50% 就買賣拉回目標;另外保留的現金,當大盤<b>從高點回撤 −12 / −22 / −32 / −42%</b> 時,<b>分四批 1:2:3:4 買進正二</b>;之後大盤創新高,把超出目標的正二賣回現金、補足準備金。</li>
+            <li><b>純偏離帶再平衡(最穩、最省事)</b>:<b>只做再平衡</b>——每半年~一年檢查,偏離目標 &gt;50% 才動、買賣拉回。寬鬆即可、不必盯盤,常常數年才動一次。不另外留崩盤彈藥。</li>
+            <li><b>純崩盤加碼 −12/−22/−32/−42(衝報酬)</b>:多頭時<b>讓正二自由跑、不賣</b>;只在大盤回撤到那四個門檻時,用現金<b>分 1:2:3:4 買進</b>;創新高後補回現金。不做日常再平衡。</li>
+            <li><b>深觸發原型712(正二 −50/−80)</b>:只在<b>跌很深</b>(正二自身 −50%、−80%,約等於大盤 −25%、−40%)才<b>分兩大批</b>重壓抄底。觸發次數少、單批很重。</li>
+            <li><b>買進持有(完全不調整)</b>:買了就放著,<b>不再平衡、不加碼</b>。僅供對照——長期通常輸給有紀律的再平衡。</li>
+          </ol>
+          <p><b>怎麼選</b>:想最穩、睡得著 → <b>純再平衡</b>;想兼顧 → <b>兩者並用(預設)</b>;想衝報酬、扛得住 −73% 回撤、相信會反彈 → <b>純崩盤加碼</b>(適合年輕、長年限)。<b>怕買高的你 → 偏再平衡那端。</b></p>
+          <p class="mut">五種機制的報酬 / 回撤 / 壞情境<b>對照數據</b>,見「3 · 風險與對照」分頁的機制對照表。</p>
+        </details>
+
+        <div class="catlabel">退休後怎麼花</div>
+        <div class="grid g3">
+          <div class="field"><label>退休後怎麼花</label>
+            <select id="flexW" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
+              <option value="0" selected>固定提領(每年花一樣,不管市場)</option>
+              <option value="1">彈性提領(跌時少花,最低花到目標 70%)</option>
+            </select>
+            <div class="hint">「固定」每年花一樣;「彈性」跌時少花(目標的 70~120%)、更安全,能提高「2.1」的達成把握度。不確定就用預設。</div>
+          </div>
+        </div>
+        <details style="margin-top:4px">
+          <summary>ⓘ 固定 vs 彈性提領?差在哪?</summary>
+          <p><b>固定提領</b>:不管市場好壞,每年都花一樣的錢(隨通膨調整)。這是 4% 法則的假設,但最危險——剛退休就碰崩盤、又照常花,本金會被加速掏空(序列風險)。</p>
+          <p><b>彈性提領(本工具做法)</b>:把每年支出綁在「當前資產的固定比例」,但設<b>地板 70%、上限 120%</b>。<b>市場跌 → 當年少花一點(最低花到目標的 70%);市場漲 → 多花一點(最高 120%)。</b></p>
+          <p><b>為什麼有效</b>:壞年份少花,等於不在谷底硬賣本金 → 本金撐得更久 → <b>退休成功率明顯提高</b>(實測例如 80%→86%、70%→80%,提領越激進、改善越大)。代價是壞年份要忍受少花(最多砍到目標的 70%)。</p>
+          <p class="mut">這是退休理財最有效、最便宜的保險——比多存錢、晚退休都划算。真實的人本來就會「手頭緊就少花」,固定提領反而不真實。</p>
+        </details>
+      </div>
+    </details>
+  </div>
+
   <div class="cta">
-    <div class="small mut" id="ctaHint" style="margin-bottom:10px">填好上面的「① 你的狀況」與「② 投資組合」後,按下開始計算。約 2~3 秒會跳到「2 · 結果」,並在背景把「3 · 風險與對照」一起算好(切過去不必再等)。<b>每按一次都會重新隨機抽樣一批。</b></div>
+    <div class="small mut" id="ctaHint" style="margin-bottom:10px">填好上面的「1.1 基本財務」與「1.3 投資組合」後就能按下開始計算(「1.2 經濟假設」「1.4 進階設定」用預設也行)。約 2~3 秒會跳到「2 · 結果」,並在背景把「3 · 風險與對照」一起算好(切過去不必再等)。<b>每按一次都會重新隨機抽樣一批。</b></div>
     <button class="btn big" id="startBtn" type="button">▶ 開始計算</button>
     <div class="prog" id="coreProg"><span></span></div>
   </div>
@@ -418,7 +462,7 @@
   <div class="small mut" id="coreStatus" style="margin-bottom:10px"></div>
   <!-- 結果卡 -->
   <div class="panel">
-    <h2>③ 你的 FIRE 里程碑(中位情境)</h2>
+    <h2>2.1 你的 FIRE 里程碑(中位情境)</h2>
     <p class="taglegend"><b>上排</b>:三種「財務自由」各自<b>幾歲達成</b>(取所有市場情境的中位)。<b>下排</b>:你要存的<b>目標金額</b>、這個計畫的<b>達成把握</b>、以及要承受的<b>風險代價</b>。</p>
     <div class="cards">
       <div class="card good"><div class="k">Coast FIRE 達成</div><div class="v" id="coastAge">—</div><div class="r" id="coastR">之後可不再為退休存錢</div></div>
@@ -436,7 +480,7 @@
     </details>
     <div class="grid g3" style="margin-top:14px">
       <div class="sbox">
-        <div class="small" id="fireNumLabel">🎯 目標:你要存到多少(今天購買力)</div>
+        <div class="small" id="fireNumLabel">🎯 目標:你要存到多少(現在的錢)</div>
         <div style="font-size:22px;font-weight:700" id="fireNum">—</div>
         <div class="small mut" id="fireNumNom"></div>
       </div>
@@ -457,7 +501,7 @@
 
   <!-- 圖 -->
   <div class="panel">
-    <h2>④ 資產成長機率帶(Monte Carlo)</h2>
+    <h2>2.2 資產成長機率帶(Monte Carlo)</h2>
     <canvas id="mainChart"></canvas>
     <div class="legend">
       <span><i style="background:#4fc3f7"></i>中位(P50)</span>
@@ -469,7 +513,7 @@
     <div id="cagrReadout" class="sbox" style="margin-top:10px"></div>
     <p class="small mut" style="margin-top:8px;line-height:1.75">
       縱軸為<b>對數刻度</b>;每次模擬 1500 條路徑、<b>月步</b>,含肥尾(Student-t)與資產相關性。<br>
-      <b>現金回市場機制</b>依你在 ① 的選擇(純再平衡 / 崩盤加碼 −12/−22/−32/−42 / 兩者並用 / 買進持有)。崩盤加碼的觸發基準 = 「1x 全市場指數」自高點回撤,按 1:2:3:4 倒進槓桿核心。<br>
+      <b>現金回市場機制</b>依你在「1.4 進階設定」的選擇(純再平衡 / 崩盤加碼 −12/−22/−32/−42 / 兩者並用 / 買進持有)。崩盤加碼的觸發基準 = 「1x 全市場指數」自高點回撤,按 1:2:3:4 倒進槓桿核心。<br>
       <b>分批進場、生命週期降槓</b>(若啟用)也會反映在內;正二/QLD 以「2× 標的 − 波動耗損 − 內扣 − 逆價差/融資」近似建模。<br>
       <b>⚠️ 未含「巨災尾部閘門」</b>:故最壞情境(P10)偏保守——純價格分不出「錯殺(會反彈)」與「結構衰退(價值陷阱)」,硬做閘門會誤觸發。真實策略在多年大蕭條會降槓、停止加碼,把最壞尾部從「滅頂」救成「存活」。
     </p>
@@ -482,32 +526,32 @@
   <div class="small mut" id="riskStatus" style="margin-bottom:10px"></div>
   <!-- 標的對照 -->
   <div class="panel">
-    <h2>⑤ 標的對照:同樣的你,換不同標的會怎樣?</h2>
+    <h2>3.1 換個標的會怎樣?(同樣的你,換不同標的)</h2>
     <table id="cmp"><thead><tr>
       <th>配置</th><th>基準年化</th><th>Coast 年齡(中位)</th><th>退休時資產(中位)</th><th>壞情境 P10</th><th>最大回撤(中位)</th>
     </tr></thead><tbody></tbody></table>
     <p class="small mut" style="margin-top:8px">「壞情境 P10」= 1/10 機率會更差的退休資產;「最大回撤」= 過程中曾經的帳面最深跌幅。看完這張就懂:<b>正二在沒大崩盤時不一定贏,贏在崩盤修復;而它的回撤遠比 0050 深</b>。</p>
 
-    <h2 style="margin-top:22px">機制對照:同樣的你,換不同「現金回市場機制」會怎樣?</h2>
+    <h2 style="margin-top:22px">3.2 換個現金進場機制會怎樣?(換不同「現金回市場機制」)</h2>
     <table id="mcmp"><thead><tr>
       <th>機制</th><th>退休時資產(中位)</th><th>壞情境 P10</th><th>好情境 P90</th><th>最大回撤(中位)</th><th>哲學</th>
     </tr></thead><tbody></tbody></table>
     <p class="small mut" style="margin-top:8px;line-height:1.75">
       用你目前的配置,只換「手上現金怎麼回市場」的規則,比較各機制的報酬/回撤。<b>沒有單一贏家</b>:純加碼報酬最高但回撤最深、純再平衡最穩但報酬中等、兩者並用居中(加碼多賺來自平均曝險較高,非加碼魔法)。<br>
-      <b>👉 每種機制的「實際操作手法」與「怎麼選」,集中寫在「① 設定」的機制說明卡裡。</b>
+      <b>👉 每種機制的「實際操作手法」與「怎麼選」,集中寫在「1.4 進階策略設定」的機制說明卡裡。</b>
     </p>
   </div>
 
   <!-- 壓力測試 -->
   <div class="panel">
-    <h2>⑥ 壓力測試:有崩盤 vs 無崩盤(本工具最重要的觀念)</h2>
+    <h2>3.3 壓力測試:有崩盤 vs 無崩盤(本工具最重要的觀念)</h2>
     <p class="small">同樣 100 萬、6 年,比較三種做法。<b>準備金加碼版</b>會在大盤回撤 −12/−22/−32/−42 時,把現金分 1:2:3:4 投入正二。</p>
     <div class="stressgrid" id="stress"></div>
     <p class="small mut" style="margin-top:8px">看出來了嗎:<b class="good">無崩盤</b>時純 0050 與靜態版差不多、加碼版沒機會發揮;<b class="bad">有崩盤</b>時,在谷底加碼的準備金版把便宜的正二買進,修復後反超。這就是「正二+準備金」現在賺的東西——<b>崩盤保險,不是平時多賺</b>。</p>
 
     <h3 style="margin:18px 0 4px">📉 歷史崩盤壓測(把過去四場大崩盤套到<b>你目前的配置 + 機制</b>,並與純 0050 對照)</h3>
     <p class="small mut" style="line-height:1.75">
-      用你在 ①② 的權重與機制,確定性地走過四段歷史崩盤路徑(以「1x 大盤」為驅動,正二/QLD 以 2× 路徑自帶波動耗損)。每個情境都<b>並排「你的配置」與「純 0050 買進持有」</b>當錨點。<br>
+      用你在「1.3／1.4」的權重與機制,確定性地走過四段歷史崩盤路徑(以「1x 大盤」為驅動,正二/QLD 以 2× 路徑自帶波動耗損)。每個情境都<b>並排「你的配置」與「純 0050 買進持有」</b>當錨點。<br>
       <b>谷底</b> = 整段最深回撤;　<b>回本時間</b> = 帳戶漲回起點要幾年;　<b>走完後倍數</b> = 整段結束時的本金倍數。<br>
       <b>看「回本」欄要先看 0050 那列</b>:若連 0050 都未回本,代表是這個<b>劇本本身不反彈</b>(市場的問題、非你的策略);只有「0050 已回本、你的配置卻仍虧損」才是槓桿配置的真風險(會標紅 ⚠️)。
     </p>
@@ -533,7 +577,7 @@
   <section class="tab" id="tab4" style="display:none">
   <!-- 觀念卡 -->
   <div class="panel">
-    <h2>⑦ 觀念說明(務必讀:槓桿真相 · 配置邏輯 · 抱得住的心法)</h2>
+    <h2>4.1 觀念說明(務必讀:槓桿真相 · 配置邏輯 · 抱得住的心法)</h2>
     <p class="taglegend">點開每張卡看詳解,分三類:<br>
       <b>① 槓桿真相</b>:2 倍不等於 2 倍報酬、短期 ≠ 長期。<br>
       <b>② 配置邏輯</b>:正二 vs 0050、準備金、債券、再平衡、加碼機制比較。<br>
@@ -595,7 +639,7 @@
         <li><b>加碼多賺的,主要是「平均曝險較高」(讓正二自由跑),不是加碼魔法</b>——高曝險=高報酬+高風險,沒有白吃的午餐。原型712 與新版幾乎一樣(新版略勝)。</li>
         <li><b>CPPI(跌減碼、漲加碼)在這裡慘敗</b>(報酬幾乎沒成長)——因為正二高波動 + 市場會反彈,它一直在谷底賣、漲回才買,被洗死;只有回撤最淺(−32%)。<b>逆勢派(再平衡/加碼)勝、順勢派(CPPI)輸,前提是「崩盤會反彈」。</b>*本工具因此不提供 CPPI。</li>
       </ul>
-      <p class="mut"><b>👉 各機制的「實際操作手法」與「怎麼選」已集中在「① 設定」的機制說明卡</b>;這裡只放完整對照數據與理論結論(避免重複)。</p>
+      <p class="mut"><b>👉 各機制的「實際操作手法」與「怎麼選」已集中在「1.4 進階策略設定」的機制說明卡</b>;這裡只放完整對照數據與理論結論(避免重複)。</p>
     </details>
 
     <details><summary>📌 行為層①:你的成本是「現在的市價」,不是「當初買的價」(紅酒比喻)</summary>
@@ -637,11 +681,11 @@
 
   <!-- 引用 -->
   <div class="panel">
-    <h2>⑧ 引用／參考來源</h2>
+    <h2>4.2 引用／參考來源</h2>
     <p class="small"><b>主要策略來源(兩位不同作者)</b>:</p>
     <ul class="small" style="margin:4px 0 10px">
-      <li><b>大仁哥</b>(letf.com.tw 部落格、《槓桿 ETF 投資法》作者;PTT 帳號 <b>Capufish</b>,即「正二哥」——同一人多個筆名):台股「正二槓桿投資法」本體——50:50 槓桿配置、偏離帶再平衡、曝險刻度、生命週期投資法、行為層。</li>
-      <li><b>onekoni</b>(PTT 帳號):準備金提列「<b>712</b>」框架(7:1:2 切分)+ 崩盤漸進加碼(−12/−22/−32/−42 分批,早期原型「正二 −50/−80」深觸發)。</li>
+      <li><b>大仁哥</b> (PTT 帳號 <b>Capufish</b>，即「正二哥」 /《槓桿 ETF 投資法》作者)：台股「正二槓桿投資法」本體 —— 50:50 槓桿配置、偏離帶再平衡、曝險刻度、生命週期投資法、行為層。</li>
+      <li><b>一貓人我的超人</b> (PTT 帳號 <b>onekoni</b> / 正二資金控管實戰版友)：台股「正二資金控管與加碼」框架 —— 準備金提列「<b>712</b>」法則 (7:1:2 切分)、崩盤漸進加碼正二 −50/−80 深觸發。</li>
     </ul>
     <details open><summary>這些來源的核心操作理念(主要為大仁哥;準備金加碼框架取自 onekoni)</summary>
       <ul>
@@ -1052,7 +1096,7 @@ function markDirty(){
 function setProg(el,frac){if(!el)return;el.classList.add('show');el.querySelector('span').style.width=Math.round(frac*100)+'%';}
 function hideProg(el){if(el){el.classList.remove('show');el.querySelector('span').style.width='0';}}
 
-// 主結果(③④):主模擬 + 基準線(共 2 次模擬)
+// 主結果(2.1/2.2):主模擬 + 基準線(共 2 次模擬)
 function computeCore(done){
   if(busy)return;busy=true;
   if($('startBtn'))$('startBtn').disabled=true;
@@ -1098,7 +1142,7 @@ function computeCore(done){
       $('cagrReadout').innerHTML=`📊 <b>中位路徑(P50)隱含年化:名目 ${pct(nomMed)} ／ 實質 ${pct(realMed)}</b>`+
         `　<span class="small mut">區間 P10 ${pct(nomP10)} ～ P90 ${pct(nomP90)}(名目)</span><br>`+
         (ci.opts.engine==='hist'
-          ? `<span class="small mut">📈 <b>歷史重抽模式</b>:報酬來自<b>美股+美債 1928–2024 真實年報酬</b>整段抽樣,中位數<b>由歷史決定</b>(不等於你設的假設 ${pct(inputMu)})。台股/QQQ 以美股史代理、年內已平滑,槓桿/債/現金各依規則套用。詳見 ① 引擎說明。</span><br>`
+          ? `<span class="small mut">📈 <b>歷史重抽模式</b>:報酬來自<b>美股+美債 1928–2024 真實年報酬</b>整段抽樣,中位數<b>由歷史決定</b>(不等於你設的假設 ${pct(inputMu)})。台股/QQQ 以美股史代理、年內已平滑,槓桿/債/現金各依規則套用。詳見「1.4 模擬方式」說明。</span><br>`
           : `<span class="small mut">各標的「基準年化」當作<b>幾何(中位)報酬</b>,以對數常態模擬,故中位路徑會<b>貼齊</b>你的混合假設 <b>${pct(inputMu)}</b>。槓桿波動耗損已內含在基準年化裡,不再重複扣。此為累積期資金加權報酬(IRR)。</span><br>`)+
         `<span class="small">📉 <b>進場頭 3 年最大回撤</b>(${dcaTxt}):中位 <b class="warn">${pct(edMed)}</b> ／ 壞情境 P90 <b class="bad">${pct(edP90)}</b>。<span class="mut">把「分批月數」拉長 → 這個數字變小(降低買在頂部的進場風險),代價是長期中位報酬略降。</span></span>`;
     } else {
@@ -1130,7 +1174,7 @@ function computeCore(done){
     if($('coreStatus')){
       $('coreStatus').innerHTML=ci.opts.engine==='hist'
         ? '📈 <b>引擎:歷史重抽</b>(美股+美債 1928–2024 真實序列)— 此投影含真實的失落十年/序列風險,<b>槓桿風險會比參數化更明顯</b>。'
-        : '📊 引擎:參數化抽樣(平滑假設)。想壓力測真實多年逆境 → 到 ① 切「歷史重抽」。';
+        : '📊 引擎:參數化抽樣(平滑假設)。想壓力測真實多年逆境 → 到「1.4 模擬方式」切「歷史重抽」。';
     }
     if($('startBtn'))$('startBtn').disabled=false;
     busy=false;
@@ -1156,7 +1200,7 @@ function applyDisplayMode(){
   $('fireAge').textContent=ms.fireAge?(ms.fireAge<=age0?'已達成':ms.fireAge+'歲'):'>'+maxAge+'歲';
   $('baristaAge').textContent=ms.baristaAge?(ms.baristaAge<=age0?'已達成':ms.baristaAge+'歲'):'>'+maxAge+'歲';
   
-  $('fireNumLabel').textContent = mode === 'nom' ? '🎯 目標:你要存到多少(未來名目金額)' : '🎯 目標:你要存到多少(今天購買力)';
+  $('fireNumLabel').textContent = mode === 'nom' ? '🎯 目標:你要存到多少(未來名目金額)' : '🎯 目標:你要存到多少(現在的錢)';
 
   $('coastR').textContent=ms.coastAge
     ? `此後即使停止月投,也能滾到 FIRE(退休 ${retire} 歲)`
@@ -1180,7 +1224,7 @@ function applyDisplayMode(){
   drawChart();
 }
 
-// 風險與對照(⑤⑥):較重的 12 次模擬,分 4 步、步間顯示進度
+// 風險與對照(3.1–3.3):較重的 12 次模擬,分 4 步、步間顯示進度
 function computeRisk(done){
   const ci=gatherInputs();
   const steps=[
@@ -1436,10 +1480,10 @@ function buildScenarios(carryDrag){
     const perm=(r0.recovYears==null),yrs=(sc.months/12).toFixed(1);
     const tr1=document.createElement('tr');
     tr1.innerHTML=`<td rowspan="2"><b>${sc.n}</b><br><span class="small mut">總長 ${yrs} 年 · ${sc.sub}</span></td>`+
-      `<td>你的配置</td><td class="${ddCls(ru.trough)}">−${(ru.trough*100).toFixed(0)}%</td>`+
+      `<td class="cfgcell">你的配置</td><td class="${ddCls(ru.trough)}">−${(ru.trough*100).toFixed(0)}%</td>`+
       `<td>${recCell(ru,perm,false)}</td><td class="${ru.endMult<1?'bad':''}">${ru.endMult.toFixed(2)}×</td>`;
     const tr2=document.createElement('tr');
-    tr2.innerHTML=`<td class="mut">純0050 基準</td><td class="mut">−${(r0.trough*100).toFixed(0)}%</td>`+
+    tr2.innerHTML=`<td class="mut cfgcell">純0050 基準</td><td class="mut">−${(r0.trough*100).toFixed(0)}%</td>`+
       `<td class="mut">${recCell(r0,perm,true)}</td><td class="mut">${r0.endMult.toFixed(2)}×</td>`;
     tb.appendChild(tr1);tb.appendChild(tr2);
   });
@@ -1579,7 +1623,7 @@ refreshL2Display();
 updateWsum(); // 還原設定後刷新圓餅/淨曝險顯示
 $('reloadCarry').addEventListener('click',()=>loadCarry(true));
 if($('resetBtn'))$('resetBtn').addEventListener('click',()=>{try{localStorage.removeItem(LS_KEY);sessionStorage.setItem('fp_afterReset','1');}catch(e){}location.reload();});
-// 一般造訪→停「使用導覽」;但「重設為預設值」後→停「① 設定」(別跳回導覽)
+// 一般造訪→停「使用導覽」;但「重設為預設值」後→停「1 · 設定」(別跳回導覽)
 let _startTab=0;try{if(sessionStorage.getItem('fp_afterReset')){_startTab=1;sessionStorage.removeItem('fp_afterReset');}}catch(e){}
 showTab(_startTab);
 loadCarry(!hadSaved); // 第一次造訪→套用自動逆價差;有存檔→沿用你存的
