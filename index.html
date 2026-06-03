@@ -121,6 +121,22 @@
   .prog>span{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
   /* 欄位小字提示(CTA / 該填什麼) */
   .field .hint{font-size:11px;color:var(--mut);margin-top:3px;line-height:1.5}
+  /* 暫存 / 比較 */
+  .snaplist{display:flex;flex-direction:column;gap:8px}
+  .snaplist .empty{color:var(--mut);font-size:13px;padding:10px 0}
+  .snap{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 12px;
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .snap .nm{font-weight:600;font-size:13.5px;flex:1;min-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .snap .meta{font-size:11px;color:var(--mut)}
+  .snap .acts{display:flex;gap:5px;flex-wrap:wrap}
+  .snap .acts button{background:transparent;border:1px solid var(--line);color:var(--mut);
+    border-radius:6px;padding:3px 9px;font-size:12px;cursor:pointer}
+  .snap .acts button:hover{color:var(--txt);border-color:var(--acc)}
+  .cmpsel{width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)}
+  table.cmptbl td.best{color:var(--good);font-weight:700}
+  table.cmptbl td.worst{color:var(--bad);font-weight:700}
+  table.cmptbl th:first-child,table.cmptbl td:first-child{color:var(--mut);font-weight:600}
+  table.cmptbl tr.grp td{color:var(--acc);font-weight:700;background:#172029;text-align:left}
   /* 區塊徽章:必填/選填 */
   .pill.must{color:#ffd9d4;border-color:#6b2b2b;background:#3a1e1e}
   .pill.opt{color:#a8c7da;border-color:var(--line)}
@@ -159,6 +175,7 @@
     <button type="button" data-tab="2">2 · 結果<span class="dot"></span></button>
     <button type="button" data-tab="3">3 · 風險與對照<span class="dot"></span></button>
     <button type="button" data-tab="4">4 · 觀念與來源</button>
+    <button type="button" data-tab="5">⚖ 比較</button>
   </div>
 
   <section class="tab" id="tab0">
@@ -454,6 +471,7 @@
   <div class="cta">
     <div class="small mut" id="ctaHint" style="margin-bottom:10px">填好上面的「1.1 基本財務」與「1.3 投資組合」後就能按下開始計算(「1.2 經濟假設」「1.4 進階設定」用預設也行)。約 2~3 秒會跳到「2 · 結果」,並在背景把「3 · 風險與對照」一起算好(切過去不必再等)。<b>每按一次都會重新隨機抽樣一批。</b></div>
     <button class="btn big" id="startBtn" type="button">▶ 開始計算</button>
+    <button class="btn ghost" id="snapSaveBtn2" type="button" style="margin-left:8px">💾 存為快照</button>
     <div class="prog" id="coreProg"><span></span></div>
   </div>
   </section>
@@ -528,13 +546,13 @@
   <div class="panel">
     <h2>3.1 換個標的會怎樣?(同樣的你,換不同標的)</h2>
     <table id="cmp"><thead><tr>
-      <th>配置</th><th>基準年化</th><th>Coast 年齡(中位)</th><th>退休時資產(中位)</th><th>壞情境 P10</th><th>最大回撤(中位)</th>
+      <th>配置</th><th>基準年化</th><th>Coast 年齡(中位)</th><th>退休時資產(中位)</th><th>壞情境 P10</th><th>最大回撤(中位)</th><th>報酬÷回撤</th>
     </tr></thead><tbody></tbody></table>
     <p class="small mut" style="margin-top:8px">「壞情境 P10」= 1/10 機率會更差的退休資產;「最大回撤」= 過程中曾經的帳面最深跌幅。看完這張就懂:<b>正二在沒大崩盤時不一定贏,贏在崩盤修復;而它的回撤遠比 0050 深</b>。</p>
 
     <h2 style="margin-top:22px">3.2 換個現金進場機制會怎樣?(換不同「現金回市場機制」)</h2>
     <table id="mcmp"><thead><tr>
-      <th>機制</th><th>退休時資產(中位)</th><th>壞情境 P10</th><th>好情境 P90</th><th>最大回撤(中位)</th><th>哲學</th>
+      <th>機制</th><th>退休時資產(中位)</th><th>壞情境 P10</th><th>好情境 P90</th><th>最大回撤(中位)</th><th>報酬÷回撤</th><th>哲學</th>
     </tr></thead><tbody></tbody></table>
     <p class="small mut" style="margin-top:8px;line-height:1.75">
       用你目前的配置,只換「手上現金怎麼回市場」的規則,比較各機制的報酬/回撤。<b>沒有單一贏家</b>:純加碼報酬最高但回撤最深、純再平衡最穩但報酬中等、兩者並用居中(加碼多賺來自平均曝險較高,非加碼魔法)。<br>
@@ -712,6 +730,39 @@
   </div>
 
   <p class="small mut">v2 規劃:歷史 block-bootstrap 機率帶(用真實歷史報酬序列取代參數化抽樣)。本檔可直接丟 GitHub Pages。</p>
+  </section>
+
+  <section class="tab" id="tab5" style="display:none">
+  <!-- 快照管理 -->
+  <div class="panel">
+    <h2>⚖ 暫存與比較</h2>
+    <p class="sub" style="margin-top:-4px">把目前的設定<b>存成快照</b>(最多 20 組),之後可一次挑 3 組<b>並排比較</b>關鍵指標。快照只存在你這台瀏覽器,建議用「匯出」備份。</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:6px">
+      <button class="btn" id="snapSaveBtn" type="button">💾 把目前設定存成快照</button>
+      <button class="btn ghost" id="snapExportBtn" type="button" style="padding:8px 12px">⬆ 匯出全部</button>
+      <button class="btn ghost" id="snapImportBtn" type="button" style="padding:8px 12px">⬇ 匯入</button>
+      <input type="file" id="snapImportFile" accept="application/json,.json" style="display:none">
+      <span class="small mut" id="snapCount"></span>
+    </div>
+    <div id="snapList" class="snaplist"></div>
+  </div>
+
+  <!-- 三方比較 -->
+  <div class="panel">
+    <h2>三方並排比較</h2>
+    <p class="sub" style="margin-top:-4px">選最多 3 組快照,按「開始比較」。指標皆取自核心模擬;<b>同一批隨機抽樣、實質購買力</b>,差異只反映配置本身。</p>
+    <div class="grid g3" id="cmpPickers">
+      <div class="field"><label>欄 1</label><select id="cmpSel0" class="cmpsel"></select></div>
+      <div class="field"><label>欄 2</label><select id="cmpSel1" class="cmpsel"></select></div>
+      <div class="field"><label>欄 3</label><select id="cmpSel2" class="cmpsel"></select></div>
+    </div>
+    <div class="row" style="gap:10px;margin:4px 0 2px">
+      <button class="btn" id="cmpRunBtn" type="button">▶ 開始比較</button>
+      <span class="small mut" id="cmpStatus"></span>
+    </div>
+    <div class="prog" id="cmpProg" style="max-width:none;margin:8px 0 0"><span></span></div>
+    <div id="cmpResult" style="margin-top:12px"></div>
+  </div>
   </section>
 </div>
 
@@ -1133,6 +1184,7 @@ function computeCore(done){
     const medV=percentile(sim.VatRetire,0.5),p10V=percentile(sim.VatRetire,0.10),p90V=percentile(sim.VatRetire,0.90);
     if(yrs>0){
       const realMed=impliedCAGR(net0,annualContrib,yrs,medV);
+      const ddCalmar=percentile(sim.maxDDarr,0.5),calmar=ddCalmar>1e-6?realMed/ddCalmar:null;
       const nomMed=(1+realMed)*(1+infl)-1;
       const nomP10=(1+impliedCAGR(net0,annualContrib,yrs,p10V))*(1+infl)-1;
       const nomP90=(1+impliedCAGR(net0,annualContrib,yrs,p90V))*(1+infl)-1;
@@ -1144,7 +1196,8 @@ function computeCore(done){
         (ci.opts.engine==='hist'
           ? `<span class="small mut">📈 <b>歷史重抽模式</b>:報酬來自<b>美股+美債 1928–2024 真實年報酬</b>整段抽樣,中位數<b>由歷史決定</b>(不等於你設的假設 ${pct(inputMu)})。台股/QQQ 以美股史代理、年內已平滑,槓桿/債/現金各依規則套用。詳見「1.4 模擬方式」說明。</span><br>`
           : `<span class="small mut">各標的「基準年化」當作<b>幾何(中位)報酬</b>,以對數常態模擬,故中位路徑會<b>貼齊</b>你的混合假設 <b>${pct(inputMu)}</b>。槓桿波動耗損已內含在基準年化裡,不再重複扣。此為累積期資金加權報酬(IRR)。</span><br>`)+
-        `<span class="small">📉 <b>進場頭 3 年最大回撤</b>(${dcaTxt}):中位 <b class="warn">${pct(edMed)}</b> ／ 壞情境 P90 <b class="bad">${pct(edP90)}</b>。<span class="mut">把「分批月數」拉長 → 這個數字變小(降低買在頂部的進場風險),代價是長期中位報酬略降。</span></span>`;
+        `<span class="small">📉 <b>進場頭 3 年最大回撤</b>(${dcaTxt}):中位 <b class="warn">${pct(edMed)}</b> ／ 壞情境 P90 <b class="bad">${pct(edP90)}</b>。<span class="mut">把「分批月數」拉長 → 這個數字變小(降低買在頂部的進場風險),代價是長期中位報酬略降。</span></span><br>`+
+        `<span class="small">⚖ <b>報酬÷回撤(Calmar式):${calmar==null?'—':calmar.toFixed(2)}</b> <span class="mut">中位實質年化 ${pct(realMed)} ÷ 中位最大回撤 ${pct(ddCalmar)};越高代表每承受 1 單位回撤換到的報酬越多、越划算。</span></span>`;
     } else {
       $('cagrReadout').innerHTML=`<span class="small mut">已屆退休年齡,無累積期年化可計算。</span>`;
     }
@@ -1261,10 +1314,11 @@ function ensureRisk(){
 
 // 分頁切換
 function showTab(n){
-  for(let k=0;k<=4;k++){const s=$('tab'+k);if(s)s.style.display=(k===n)?'':'none';}
+  for(let k=0;k<=5;k++){const s=$('tab'+k);if(s)s.style.display=(k===n)?'':'none';}
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',+b.dataset.tab===n));
   if(n===2)ensureCore(()=>{if(chartData)drawChart();});
   if(n===3)ensureRisk();
+  if(n===5)renderSnapshots();
   window.scrollTo(0,0);
 }
 
@@ -1387,14 +1441,18 @@ function buildCompare(baseOpts,exp,pension,swr,carryDrag){
     const oo=Object.assign({},o,{blendedReal:br-baseOpts.infl});
     const sim=simulate(w,defs,oo);
     const ms=milestones(sim,oo,fireNum);
-    const vMed=conv(percentile(sim.VatRetire,0.5)),vP10=conv(percentile(sim.VatRetire,0.10));
+    const rawMed=percentile(sim.VatRetire,0.5);
+    const vMed=conv(rawMed),vP10=conv(percentile(sim.VatRetire,0.10));
     const ddMed=percentile(sim.maxDDarr,0.5);
+    const cagrR=(rIdx>0)?impliedCAGR(baseOpts.net0,baseOpts.annualContrib,rIdx,rawMed):null;
+    const calmar=(cagrR!=null&&ddMed>1e-6)?cagrR/ddMed:null;
     const tr=document.createElement('tr');
     const isYou=pr.n.startsWith('★');
     tr.innerHTML=`<td>${isYou?'<b>'+pr.n+'</b>':pr.n}</td><td>${pct(br)}</td>
       <td>${ms.coastAge?ms.coastAge+'歲':'—'}</td><td>${fmtW(vMed)}</td>
       <td class="${vP10<conv(fireNum)?'bad':''}">${fmtW(vP10)}</td>
-      <td class="${ddMed>0.6?'bad':(ddMed>0.45?'warn':'')}">${pct(ddMed)}</td>`;
+      <td class="${ddMed>0.6?'bad':(ddMed>0.45?'warn':'')}">${pct(ddMed)}</td>
+      <td>${calmar==null?'—':calmar.toFixed(2)}</td>`;
     if(isYou)tr.style.background='#16222c';
     tb.appendChild(tr);
   });
@@ -1419,12 +1477,16 @@ function buildMechCompare(baseOpts,defs){
   const tb=$('mcmp').querySelector('tbody');tb.innerHTML='';
   mechs.forEach(mc=>{
     const sim=simulate(w,defs,Object.assign({},o,{mech:mc.m}));
-    const vMed=conv(percentile(sim.VatRetire,0.5)),vP10=conv(percentile(sim.VatRetire,0.10)),vP90=conv(percentile(sim.VatRetire,0.90)),ddMed=percentile(sim.maxDDarr,0.5);
+    const rawMed=percentile(sim.VatRetire,0.5);
+    const vMed=conv(rawMed),vP10=conv(percentile(sim.VatRetire,0.10)),vP90=conv(percentile(sim.VatRetire,0.90)),ddMed=percentile(sim.maxDDarr,0.5);
+    const cagrR=(rIdx>0)?impliedCAGR(baseOpts.net0,baseOpts.annualContrib,rIdx,rawMed):null;
+    const calmar=(cagrR!=null&&ddMed>1e-6)?cagrR/ddMed:null;
     const isCur=mc.m===curMech;
     const tr=document.createElement('tr');
     tr.innerHTML=`<td>${isCur?'<b>▸ '+mc.n+'(目前)</b>':mc.n}</td><td>${fmtW(vMed)}</td>`+
       `<td>${fmtW(vP10)}</td><td>${fmtW(vP90)}</td>`+
-      `<td class="${ddMed>0.65?'bad':(ddMed>0.5?'warn':'')}">${pct(ddMed)}</td><td class="small mut">${mc.ph}</td>`;
+      `<td class="${ddMed>0.65?'bad':(ddMed>0.5?'warn':'')}">${pct(ddMed)}</td>`+
+      `<td>${calmar==null?'—':calmar.toFixed(2)}</td><td class="small mut">${mc.ph}</td>`;
     if(isCur)tr.style.background='#16222c';
     tb.appendChild(tr);
   });
@@ -1579,6 +1641,245 @@ const LS_IDS=['age','retire','net','mon','exp','pension','infl','swr','dispmode'
 function saveSettings(){try{const s={};LS_IDS.forEach(id=>{const el=$(id);if(el)s[id]=el.value;});ORDER.forEach(k=>{const el=$('n_'+k);if(el)s['n_'+k]=el.value;});localStorage.setItem(LS_KEY,JSON.stringify(s));}catch(e){}}
 function loadSettings(){try{const raw=localStorage.getItem(LS_KEY);if(!raw)return false;const s=JSON.parse(raw);Object.keys(s).forEach(id=>{const el=$(id);if(el&&s[id]!=null)el.value=s[id];});return true;}catch(e){return false;}}
 
+// ================= 暫存與比較 =================
+const SNAP_KEY='firePlanner_snapshots_v1';
+const SNAP_MAX=20;
+const _cmpCache=new Map(); // paramsHash -> metrics(同 session 快取,避免重算)
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function genId(){return 's'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+function snapLoadAll(){try{const r=localStorage.getItem(SNAP_KEY);if(!r)return [];const a=JSON.parse(r);return Array.isArray(a)?a:[];}catch(e){return [];}}
+function snapSaveAll(arr){try{localStorage.setItem(SNAP_KEY,JSON.stringify(arr));}catch(e){alert('儲存失敗:瀏覽器空間不足或處於隱私模式。');}}
+
+// 目前表單狀態(格式同 saveSettings)
+function currentParams(){
+  const s={};LS_IDS.forEach(id=>{const el=$(id);if(el)s[id]=el.value;});
+  ORDER.forEach(k=>{const el=$('n_'+k);if(el)s['n_'+k]=el.value;});
+  return s;
+}
+// 把參數寫回表單(設 .value 不觸發 change → 不誤標 dirty)
+function applyParams(p){
+  LS_IDS.forEach(id=>{const el=$(id);if(el&&p[id]!=null)el.value=p[id];});
+  ORDER.forEach(k=>{const el=$('n_'+k);if(el&&p['n_'+k]!=null)el.value=p['n_'+k];});
+  refreshL2Display();updateWsum();
+}
+// 自動命名:用配置特徵組字
+function autoName(p){
+  const wt=k=>Math.round(+(p['n_'+k]||0));
+  const seg=[];
+  const lev=wt('L2')+wt('QLD');
+  if(lev>0)seg.push('槓桿'+lev+'%');
+  ['VT','VTI','VOO','TW50','QQQ','BOND','GOLD'].forEach(k=>{if(wt(k)>0)seg.push(SHORT[k]+wt(k)+'%');});
+  if(wt('CASH')>0)seg.push('現金'+wt('CASH')+'%');
+  let nm=seg.slice(0,3).join('·')||'自訂配置';
+  const tags=[];
+  if((+(p.glide||0))===1)tags.push('降槓');
+  if(p.engine==='hist')tags.push('歷史');
+  if((+(p.flexW||0))===1)tags.push('彈性');
+  if(tags.length)nm+='('+tags.join('/')+')';
+  return nm.slice(0,30);
+}
+
+function snapSaveCurrent(){
+  const arr=snapLoadAll();
+  if(arr.length>=SNAP_MAX){alert('已達 '+SNAP_MAX+' 組上限,請先刪除一組再存。');return;}
+  const p=currentParams();
+  const def=autoName(p);
+  const name=(prompt('快照名稱(可改):',def)||'').trim()||def;
+  arr.push({id:genId(),name:name.slice(0,30),createdAt:Date.now(),v:1,params:p});
+  snapSaveAll(arr);renderSnapshots();
+  if($('cmpStatus'))$('cmpStatus').textContent='已存「'+name.slice(0,30)+'」。';
+}
+function snapRename(id){
+  const arr=snapLoadAll(),s=arr.find(x=>x.id===id);if(!s)return;
+  const nm=(prompt('改名:',s.name)||'').trim();if(!nm)return;
+  s.name=nm.slice(0,30);snapSaveAll(arr);renderSnapshots();
+}
+function snapDuplicate(id){
+  const arr=snapLoadAll(),s=arr.find(x=>x.id===id);if(!s)return;
+  if(arr.length>=SNAP_MAX){alert('已達 '+SNAP_MAX+' 組上限。');return;}
+  arr.push({id:genId(),name:(s.name+' 複本').slice(0,30),createdAt:Date.now(),v:1,params:Object.assign({},s.params)});
+  snapSaveAll(arr);renderSnapshots();
+}
+function snapDelete(id){snapSaveAll(snapLoadAll().filter(x=>x.id!==id));renderSnapshots();}
+function snapLoadToForm(id){
+  const s=snapLoadAll().find(x=>x.id===id);if(!s)return;
+  applyParams(s.params);markDirty();showTab(1); // 載入後跳「1 · 設定」檢視
+}
+
+function snapExport(){
+  const arr=snapLoadAll();
+  if(!arr.length){alert('目前沒有快照可匯出。');return;}
+  const data=JSON.stringify({app:'fire-planner',type:'snapshots',v:1,exportedAt:new Date().toISOString(),snapshots:arr},null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='fire-planner-snapshots.json';
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+function snapImport(file){
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const obj=JSON.parse(rd.result);
+      const incoming=Array.isArray(obj)?obj:(obj&&Array.isArray(obj.snapshots)?obj.snapshots:null);
+      if(!incoming){alert('檔案格式不符(找不到 snapshots 陣列)。');return;}
+      const arr=snapLoadAll();
+      const have=new Set(arr.map(x=>x.id));
+      let added=0,skipped=0;
+      incoming.forEach(s=>{
+        if(!s||!s.params){skipped++;return;}
+        if(arr.length>=SNAP_MAX){skipped++;return;}
+        const id=(s.id&&!have.has(s.id))?s.id:genId();have.add(id);
+        arr.push({id,name:(s.name||autoName(s.params)).slice(0,30),createdAt:s.createdAt||Date.now(),v:1,params:s.params});
+        added++;
+      });
+      snapSaveAll(arr);renderSnapshots();
+      alert('匯入完成(合併):新增 '+added+' 組'+(skipped?(',略過 '+skipped+' 組(達上限或格式不符)'):'')+'。');
+    }catch(e){alert('匯入失敗:無法解析 JSON。');}
+  };
+  rd.readAsText(file);
+}
+
+function renderSnapshots(){
+  const arr=snapLoadAll();
+  if($('snapCount'))$('snapCount').textContent=arr.length+'/'+SNAP_MAX+' 組';
+  const list=$('snapList');
+  if(list){
+    if(!arr.length){list.innerHTML='<div class="empty">還沒有快照。到「1 · 設定」調好後,按「💾 把目前設定存成快照」。</div>';}
+    else{
+      list.innerHTML='';
+      arr.forEach(s=>{
+        const lev=Math.round((+(s.params['n_L2']||0))+(+(s.params['n_QLD']||0)));
+        const div=document.createElement('div');div.className='snap';
+        div.innerHTML=`<span class="nm" title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</span>`+
+          `<span class="meta">槓桿 ${lev}% · ${new Date(s.createdAt).toLocaleDateString()}</span>`+
+          `<span class="acts">`+
+          `<button data-act="load">載入</button>`+
+          `<button data-act="rename">改名</button>`+
+          `<button data-act="dup">複製</button>`+
+          `<button data-act="del">刪除</button></span>`;
+        div.querySelector('[data-act="load"]').onclick=()=>snapLoadToForm(s.id);
+        div.querySelector('[data-act="rename"]').onclick=()=>snapRename(s.id);
+        div.querySelector('[data-act="dup"]').onclick=()=>snapDuplicate(s.id);
+        div.querySelector('[data-act="del"]').onclick=()=>{if(confirm('刪除「'+s.name+'」?'))snapDelete(s.id);};
+        list.appendChild(div);
+      });
+    }
+  }
+  for(let i=0;i<3;i++){
+    const sel=$('cmpSel'+i);if(!sel)continue;
+    const prev=sel.value;
+    sel.innerHTML='<option value="">— 不選 —</option>'+arr.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+    if(arr.some(s=>s.id===prev))sel.value=prev;
+    else if(arr[i])sel.value=arr[i].id;
+  }
+}
+
+function paramsHash(p){
+  const keys=['age','retire','net','mon','exp','pension','infl','swr','dcaMonths','glide','glideStart','mech','flexW','engine','carry','voldrag','qldfin'].concat(ORDER.map(k=>'n_'+k));
+  return keys.map(k=>k+'='+(p[k]==null?'':p[k])).join('|');
+}
+// 用既有引擎、給定參數跑核心指標(暫存/還原表單,複用 gatherInputs/simulate/milestones)
+function computeMetrics(params){
+  const key=paramsHash(params);
+  if(_cmpCache.has(key))return _cmpCache.get(key);
+  const saved=currentParams();
+  let m;
+  try{
+    applyParams(params);
+    const ci=gatherInputs();
+    const opts=Object.assign({},ci.opts,{paths:800}); // 比較用降路徑數求快
+    const sim=simulate(ci.w,ci.defs,opts);
+    const ms=milestones(sim,opts,ci.fireNum);
+    const surv=sim.survive.reduce((s,v)=>s+v,0)/sim.survive.length;
+    const medRetire=percentile(sim.VatRetire,0.5);
+    const ddMed=percentile(sim.maxDDarr,0.5);
+    const yrs=ci.retire-ci.age0;
+    const cagr=(yrs>0)?impliedCAGR(ci.net0,ci.annualContrib,yrs,medRetire):null; // 中位實質年化
+    const calmar=(cagr!=null&&ddMed>1e-6)?cagr/ddMed:null;                       // 報酬÷回撤
+    m={netExp:netExposure(ci.w),muNom:blendedMuNom(ci.w,ci.defs),
+       coastAge:ms.coastAge,fireAge:ms.fireAge,baristaAge:ms.baristaAge,
+       pFire:fracGE(sim.VatRetire,ci.fireNum),survive:surv,
+       medRetire,p90:percentile(sim.VatRetire,0.90),p10:percentile(sim.VatRetire,0.10),
+       ddMed,ddP90:percentile(sim.maxDDarr,0.90),
+       early3:percentile(sim.early3,0.5),
+       cagr,calmar};
+  } finally { applyParams(saved); } // 還原表單,使用者無感
+  _cmpCache.set(key,m);
+  return m;
+}
+function runCompare(){
+  const ids=[0,1,2].map(i=>$('cmpSel'+i)?$('cmpSel'+i).value:'').filter(Boolean);
+  if(ids.length<2){if($('cmpStatus'))$('cmpStatus').textContent='請至少選 2 組快照。';return;}
+  const arr=snapLoadAll();
+  const chosen=ids.map(id=>arr.find(s=>s.id===id)).filter(Boolean);
+  if($('cmpRunBtn'))$('cmpRunBtn').disabled=true;
+  if($('cmpStatus'))$('cmpStatus').textContent='計算中…';
+  setProg($('cmpProg'),0.05);
+  const results=[];let i=0;
+  function step(){
+    if(i>=chosen.length){
+      hideProg($('cmpProg'));
+      if($('cmpRunBtn'))$('cmpRunBtn').disabled=false;
+      if($('cmpStatus'))$('cmpStatus').textContent='完成。';
+      renderCompare(chosen,results);return;
+    }
+    results[i]=computeMetrics(chosen[i].params);i++;
+    setProg($('cmpProg'),0.05+0.9*(i/chosen.length));
+    setTimeout(step,0); // 讓出主執行緒、刷新進度,避免卡頓
+  }
+  setTimeout(step,0);
+}
+function renderCompare(snaps,res){
+  const fmtAge=a=>a==null?'未達成':a+' 歲';
+  const fmtPct0=v=>(v*100).toFixed(0)+'%';
+  const fmtNeg=v=>'−'+(v*100).toFixed(0)+'%';
+  const rows=[
+    {group:'⚙️ 配置'},
+    {label:'淨曝險',get:r=>r.netExp,fmt:fmtPct0,better:'low',hint:'>150% 偏積極'},
+    {label:'混合年化(名目假設)',get:r=>r.muNom,fmt:v=>pct(v),better:'high',hint:'你設定的前瞻假設、非結果'},
+    {group:'🎯 幾歲達成(越早越好)'},
+    {label:'Coast FIRE 達成',get:r=>r.coastAge,fmt:fmtAge,better:'lowAge'},
+    {label:'Full FIRE 達成',get:r=>r.fireAge,fmt:fmtAge,better:'lowAge'},
+    {label:'Barista 半退休 達成',get:r=>r.baristaAge,fmt:fmtAge,better:'lowAge'},
+    {group:'✅ 把握度(越高越好)'},
+    {label:'退休目標達成把握(65前存到)',get:r=>r.pFire,fmt:fmtPct0,better:'high'},
+    {label:'退休後撐到老存活率',get:r=>r.survive,fmt:fmtPct0,better:'high',hint:'真實提領模擬不破產的比例'},
+    {group:'💰 退休時資產(越高越好)'},
+    {label:'中位(P50)',get:r=>r.medRetire,fmt:fmtW,better:'high'},
+    {label:'好情境(P90)',get:r=>r.p90,fmt:fmtW,better:'high'},
+    {label:'壞情境(P10)',get:r=>r.p10,fmt:fmtW,better:'high',hint:'1/10 機率會更差'},
+    {group:'📉 風險:回撤(越小越好)'},
+    {label:'最大回撤(中位)',get:r=>r.ddMed,fmt:fmtNeg,better:'low'},
+    {label:'最大回撤(壞情境P90)',get:r=>r.ddP90,fmt:fmtNeg,better:'low'},
+    {label:'進場頭3年回撤(中位)',get:r=>r.early3,fmt:fmtNeg,better:'low',hint:'剛進場就重傷的風險'},
+    {group:'⚖ 風險調整後(越高越好)'},
+    {label:'中位實質年化(模擬)',get:r=>r.cagr,fmt:v=>v==null?'—':pct(v),better:'high',hint:'累積期資金加權報酬'},
+    {label:'報酬÷回撤(Calmar式)',get:r=>r.calmar,fmt:v=>v==null?'—':v.toFixed(2),better:'high',hint:'每承受1單位回撤換到的年化,越高越划算'}
+  ];
+  const ncol=1+snaps.length;
+  let html='<table class="cmptbl"><thead><tr><th>指標</th>'+snaps.map(s=>`<th>${escapeHtml(s.name)}</th>`).join('')+'</tr></thead><tbody>';
+  rows.forEach(row=>{
+    if(row.group){html+=`<tr class="grp"><td colspan="${ncol}">${row.group}</td></tr>`;return;}
+    const lowerBetter=(row.better!=='high');
+    const scored=res.map((r,idx)=>{let v=row.get(r);let sc=(v==null)?Infinity:(lowerBetter?v:-v);return {idx,sc,v};});
+    let bestIdx=-1,worstIdx=-1;
+    if(res.length>=2){
+      const scs=scored.map(o=>o.sc),minS=Math.min(...scs),maxS=Math.max(...scs);
+      if(minS!==maxS){bestIdx=scored.find(o=>o.sc===minS).idx;worstIdx=scored.slice().reverse().find(o=>o.sc===maxS).idx;}
+    }
+    const lab=row.label+(row.hint?` <span class="small mut">(${row.hint})</span>`:'');
+    html+=`<tr><td>${lab}</td>`;
+    scored.forEach(o=>{const cls=o.idx===bestIdx?'best':(o.idx===worstIdx?'worst':'');html+=`<td class="${cls}">${row.fmt(o.v)}</td>`;});
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  html+='<p class="small mut" style="margin-top:8px;line-height:1.7">🟢=該列最佳　🔴=該列最差。<br>'+
+    '金額一律為<b>實質購買力(現在的錢)</b>,<b>不受「金額顯示方式」影響</b>——三組各自的通膨假設可能不同,都用實質才能公平並排。<br>'+
+    '比較用核心模擬(路徑數較少求快),數值為<b>相對參考</b>;精細數字以「2 · 結果」為準。</p>';
+  if($('cmpResult'))$('cmpResult').innerHTML=html;
+}
+
 // ---------- init ----------
 buildWeights();
 const hadSaved=loadSettings();
@@ -1619,6 +1920,14 @@ $('startBtn').addEventListener('click',()=>{coreVer=-1;riskVer=-1;ensureCore(()=
 ['chk1','chk2','chk3','chk4'].forEach(id=>{const el=$(id);if(el)el.addEventListener('change',updatePreflight);});
 if($('goSetup'))$('goSetup').addEventListener('click',()=>showTab(1));
 if($('loadSafe'))$('loadSafe').addEventListener('click',loadSafeExample);
+// 暫存與比較
+if($('snapSaveBtn'))$('snapSaveBtn').addEventListener('click',snapSaveCurrent);
+if($('snapSaveBtn2'))$('snapSaveBtn2').addEventListener('click',snapSaveCurrent);
+if($('snapExportBtn'))$('snapExportBtn').addEventListener('click',snapExport);
+if($('snapImportBtn'))$('snapImportBtn').addEventListener('click',()=>$('snapImportFile').click());
+if($('snapImportFile'))$('snapImportFile').addEventListener('change',e=>{if(e.target.files&&e.target.files[0]){snapImport(e.target.files[0]);e.target.value='';}});
+if($('cmpRunBtn'))$('cmpRunBtn').addEventListener('click',runCompare);
+renderSnapshots();
 refreshL2Display();
 updateWsum(); // 還原設定後刷新圓餅/淨曝險顯示
 $('reloadCarry').addEventListener('click',()=>loadCarry(true));
