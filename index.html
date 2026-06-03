@@ -1068,17 +1068,7 @@ function computeCore(done){
     const benchSim=simulate(benchW,defs,Object.assign({},opts,{mech:'bh',dcaMonths:0,dcaTranches:1,glide:0,paths:1000}));
     setProg($('coreProg'),0.9);
     lastCore={ci,sim,benchSim,ms};
-    // 里程碑卡
-    $('coastAge').textContent=ms.coastAge?(ms.coastAge<=age0?age0+'歲(已達成)':ms.coastAge+'歲'):'未達成';
-    $('fireAge').textContent=ms.fireAge?(ms.fireAge<=age0?'已達成':ms.fireAge+'歲'):'>'+maxAge+'歲';
-    $('baristaAge').textContent=ms.baristaAge?(ms.baristaAge<=age0?'已達成':ms.baristaAge+'歲'):'>'+maxAge+'歲';
-    $('coastR').textContent=ms.coastAge
-      ? `此後即使停止月投,也能滾到 FIRE(退休 ${retire} 歲)`
-      : `中位情境到退休 ${retire} 歲僅 ${fmtW(ms.medAtRetire)} < FIRE ${fmtW(fireNum)} → 還到不了,需提高報酬/多存/降支出`;
-    $('fireNum').textContent=fmtW(fireNum);
-    $('fireNumNom').textContent=pension>0
-      ? `扣掉年金 ${pension}萬/年後、需自己存的本金。完整需求 ${fmtW(fireNumFull)}(= 年支出 ${exp}萬 ÷ ${$('swr').value}%)。`
-      : `= 年支出 ${exp}萬 ÷ 提領率 ${$('swr').value}%。`;
+    
     const pFire=fracGE(sim.VatRetire,fireNum);
     const pDD=fracGEdd(sim.maxDDarr,0.5);
     $('pFire').textContent=pct(pFire);$('pFire').className=pFire>0.7?'good':(pFire>0.4?'warn':'bad');
@@ -1152,10 +1142,29 @@ function computeCore(done){
 function applyDisplayMode(){
   if(!lastCore)return;
   const {sim,benchSim,ms,ci}=lastCore;
-  const {infl,fireNum,retire,age0}=ci;
+  const {infl,fireNum,retire,age0,maxAge,exp,pension}=ci;
   const mode=$('dispmode').value;
   const ages=[];for(let y=0;y<=sim.nYears;y++)ages.push(age0+y);
   const conv=(v,y)=>mode==='nom'?v*Math.pow(1+infl,y):v;
+
+  // 更新里程碑卡片文字
+  const rIdx=Math.max(0,Math.min(sim.nYears,retire-age0));
+  const curFireNum=conv(fireNum,rIdx);
+  const curMedAtRetire=conv(ms.medAtRetire,rIdx);
+
+  $('coastAge').textContent=ms.coastAge?(ms.coastAge<=age0?age0+'歲(已達成)':ms.coastAge+'歲'):'未達成';
+  $('fireAge').textContent=ms.fireAge?(ms.fireAge<=age0?'已達成':ms.fireAge+'歲'):'>'+maxAge+'歲';
+  $('baristaAge').textContent=ms.baristaAge?(ms.baristaAge<=age0?'已達成':ms.baristaAge+'歲'):'>'+maxAge+'歲';
+  
+  $('coastR').textContent=ms.coastAge
+    ? `此後即使停止月投,也能滾到 FIRE(退休 ${retire} 歲)`
+    : `中位情境到退休 ${retire} 歲僅 ${fmtW(curMedAtRetire)} < FIRE ${fmtW(curFireNum)} → 還到不了,需提高報酬/多存/降支出`;
+  
+  $('fireNum').textContent=fmtW(curFireNum);
+  $('fireNumNom').textContent=pension>0
+    ? `扣掉年金 ${pension}萬/年後、需自己存的本金(${mode==='nom'?'名目':'實質'})。完整需求 ${fmtW(conv(ci.fireNumFull,rIdx))}(= 年支出 ${exp}萬 ÷ ${$('swr').value}%)。`
+    : `= 年支出 ${exp}萬 ÷ 提領率 ${$('swr').value}% (${mode==='nom'?'名目':'實質'})。`;
+
   chartData={
     ages,
     p10:sim.p10.map((v,y)=>conv(v,y)),
