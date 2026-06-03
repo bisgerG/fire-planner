@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Coast FIRE 槓桿規劃器</title>
+<style>
+  :root{
+    --bg:#0f1419; --panel:#1a212b; --panel2:#222c38; --line:#2e3a48;
+    --txt:#e6edf3; --mut:#9fb0c0; --acc:#4fc3f7; --good:#43a047; --warn:#fb8c00; --bad:#e53935;
+    --gold:#c9a227;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:system-ui,"Microsoft JhengHei","PingFang TC","Noto Sans CJK TC",sans-serif;
+    line-height:1.55;font-size:15px}
+  .wrap{max-width:1100px;margin:0 auto;padding:18px}
+  h1{font-size:22px;margin:6px 0 2px}
+  h2{font-size:17px;margin:0 0 10px;border-left:4px solid var(--acc);padding-left:9px}
+  .sub{color:var(--mut);font-size:13px;margin:0 0 14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  .grid{display:grid;gap:12px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:720px){.g2,.g3{grid-template-columns:1fr}}
+  label{display:block;font-size:12px;color:var(--mut);margin-bottom:3px}
+  input[type=number]{width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:7px;color:var(--txt);font-size:15px}
+  .field{margin-bottom:10px}
+  .row{display:flex;align-items:center;gap:8px}
+  .banner{background:#3a1e1e;border:1px solid #6b2b2b;color:#ffd9d4;border-radius:10px;
+    padding:10px 13px;font-size:12.5px;margin-bottom:16px}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:720px){.cards{grid-template-columns:1fr}}
+  .card{background:linear-gradient(160deg,#1d2733,#172029);border:1px solid var(--line);
+    border-radius:12px;padding:14px;text-align:center}
+  .card .k{font-size:12px;color:var(--mut)}
+  .card .v{font-size:30px;font-weight:700;margin:4px 0;color:var(--acc)}
+  .card .r{font-size:12px;color:var(--mut)}
+  .card.good .v{color:var(--good)} .card.warn .v{color:var(--warn)} .card.bad .v{color:var(--bad)}
+  .card .t{font-size:14px;font-weight:700;margin-bottom:6px;color:var(--txt)}
+  .chk{display:block;padding:7px 0;font-size:13.5px;line-height:1.5;cursor:pointer}
+  .chk input{margin-right:8px;transform:scale(1.15);vertical-align:-1px}
+  dl.gloss{margin:8px 0 0}
+  dl.gloss dt{font-weight:700;color:var(--acc);margin-top:11px;font-size:13.5px}
+  dl.gloss dd{margin:3px 0 0;font-size:13px;color:var(--mut);line-height:1.65}
+  /* 新手入門頁專屬排版:更鬆、更好讀 */
+  #tab0 .panel{padding:22px 24px}
+  #tab0 .sub{font-size:14px;line-height:1.85;margin-bottom:16px}
+  #tab0 h3{font-size:15.5px;margin:22px 0 10px}
+  #tab0 .banner{font-size:13.5px;line-height:1.75;padding:13px 16px}
+  #tab0 p.small{font-size:13.5px;line-height:1.8;margin:8px 0}
+  #tab0 .cards{gap:14px;margin-top:6px}
+  #tab0 .card{text-align:left;padding:16px 18px}
+  #tab0 .card .t{font-size:15px;margin-bottom:9px;line-height:1.4}
+  #tab0 .card .small{line-height:1.75}
+  #tab0 .intro-points{display:flex;flex-direction:column;gap:10px;margin:6px 0 4px}
+  #tab0 .intro-points p{margin:0;padding:11px 15px;background:var(--panel2);
+    border-left:3px solid var(--acc);border-radius:0 8px 8px 0;font-size:14px;line-height:1.7}
+  #tab0 .chk{padding:9px 0;font-size:14px;line-height:1.65}
+  #tab0 ol.small{padding-left:20px}
+  #tab0 ol.small li{font-size:13.5px;line-height:1.8;margin-bottom:10px}
+  #tab0 .cta .small{line-height:1.7}
+  canvas{width:100%;height:360px;display:block;background:#121922;border-radius:10px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--mut);font-weight:600}
+  .btn{background:var(--acc);color:#04222e;border:none;border-radius:8px;padding:10px 16px;
+    font-size:14px;font-weight:700;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+  .slider{width:100%}
+  .wt{display:flex;justify-content:space-between;font-size:12px;color:var(--mut)}
+  .asset{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+  .asset .top{display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .asset .nm{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+  .asset .top .small{flex:none;white-space:nowrap}
+  .numw{width:54px;padding:3px 6px;background:#172029;border:1px solid var(--line);border-radius:6px;color:var(--txt);font-size:14px;text-align:right}
+  .ameta{font-size:11px;color:var(--mut);margin-top:3px}
+  .ameta b{color:#cdd9e4}
+  .rolehint{cursor:pointer;color:var(--acc);text-decoration:underline dotted;white-space:nowrap}
+  .roletext{display:none;font-size:11.5px;color:#a8c7da;margin-top:6px;line-height:1.55;border-top:1px dashed var(--line);padding-top:6px}
+  .roletext.show{display:block}
+  .catlabel{font-size:12px;font-weight:700;color:#a8c7da;margin:13px 0 7px;border-left:3px solid var(--acc);padding-left:8px}
+  .catlabel.first{margin-top:2px}
+  .taglegend{font-size:11.5px;color:var(--mut);margin:0 0 12px;line-height:1.6}
+  .levbox{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 13px;margin-top:14px}
+  .levhead{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;font-weight:600;gap:8px}
+  .levhead b{font-size:19px;color:var(--warn)}
+  .levbox .wt{margin-bottom:3px}
+  .pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:20px;border:1px solid var(--line);color:var(--mut)}
+  details{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:9px}
+  details>summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--acc)}
+  details p,details ul{font-size:13px;color:#cdd9e4;margin:8px 0}
+  .mut{color:var(--mut)} .good{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--mut);margin-top:8px}
+  .legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px}
+  .totbad{color:var(--bad);font-weight:700}
+  .small{font-size:12px;color:var(--mut)}
+  .stressgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:720px){.stressgrid{grid-template-columns:1fr}}
+  .sbox{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .sbox h4{margin:0 0 8px;font-size:14px}
+  .bar{height:18px;border-radius:4px;background:#2a3744;position:relative;margin:3px 0 9px}
+  .bar>span{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 16px;border-bottom:1px solid var(--line)}
+  .tabs button{background:none;border:none;border-bottom:3px solid transparent;color:var(--mut);
+    font-size:14px;font-weight:600;padding:9px 14px;cursor:pointer;border-radius:8px 8px 0 0}
+  .tabs button:hover{color:var(--txt);background:var(--panel2)}
+  .tabs button.active{color:var(--acc);border-bottom-color:var(--acc)}
+  .tabs button .dot{display:none;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-left:5px;vertical-align:middle}
+  .tabs button.stale .dot{display:inline-block}
+  .cta{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:20px;text-align:center;margin-top:6px}
+  .btn.big{font-size:16px;padding:13px 32px}
+  .btn:disabled{opacity:.55;cursor:default}
+  .prog{height:8px;border-radius:5px;background:#2a3744;overflow:hidden;margin:14px auto 0;max-width:360px;display:none}
+  .prog.show{display:block}
+  .prog>span{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
+  /* 全域可讀性:展開卡/清單行距放鬆,避免文字牆 */
+  details p{line-height:1.72;margin:8px 0}
+  details li{line-height:1.7;margin-bottom:5px}
+  details summary{cursor:pointer;padding:3px 0}
+  .taglegend{line-height:1.7}
+  p.small{line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Coast FIRE 規劃器</h1>
+  <p class="sub">
+    支援指數投資規劃的 Coast FIRE 規劃器。<br>
+    能在你的瀏覽器內運算,<b>財務數字不外傳</b>;所有報酬為假設、非預測。<br>
+    <b>你的設定會自動記在本機</b>,下次打開沿用(可按「↺ 重設」清除)。
+  </p>
+
+  <div class="banner">
+    ⚠️ <b>常駐風險揭露</b><br>
+    這是 regime bet(押市場長期向上)。歷史報酬來自史上最猛多頭(倖存者偏差),別當預期。<br>
+    槓桿 / QQQ 在 2000 式情境會永久滅失。最差情境連 65 歲都可能不夠,需續工或砍支出。
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button type="button" data-tab="0" class="active">📖 使用導覽</button>
+    <button type="button" data-tab="1">1 · 設定</button>
+    <button type="button" data-tab="2">2 · 結果<span class="dot"></span></button>
+    <button type="button" data-tab="3">3 · 風險與對照<span class="dot"></span></button>
+    <button type="button" data-tab="4">4 · 觀念與來源</button>
+  </div>
+
+  <section class="tab" id="tab0">
+    <div class="panel">
+      <h2>📖 使用導覽 — 歡迎你,我們慢慢來</h2>
+      <p class="sub" style="margin-top:0">嗨,先別緊張 🙂 如果你<b>還沒接觸過 FIRE、股票、槓桿 ETF</b>,這一頁就是專門為你準備的。花個三分鐘讀完,你就會大概知道這個工具能幫你做什麼。看到不懂的詞也沒關係,我們下面都會慢慢解釋。準備好了,再一起到「1 · 設定」就好。</p>
+
+      <div class="banner" style="margin:12px 0">
+        ⚠️ <b>有件事想先誠實跟你說</b>:這個工具裡有一種叫<b>槓桿 ETF(正二、QLD)</b>的東西,它會<b>同時放大你賺的、也放大你賠的</b>。萬一遇到像 2000 年那樣的大崩盤,最壞可能讓你<b>幾乎血本無歸、好多年都回不了本</b>。所以請放心——槓桿<b>不是非用不可</b>,你完全可以用這個工具,規劃一個「<b>完全不開槓桿</b>」的安穩退休。要不要用、用多少,主導權一直都在你手上。
+      </div>
+
+      <h3>這個工具,其實是在幫你做什麼?</h3>
+      <p class="small" style="margin-bottom:6px">它想陪你看清楚兩件事:</p>
+      <div class="intro-points">
+        <p><b>① 你大概幾歲,就能「不靠上班、靠資產過生活」</b>(這就是 FIRE)。</p>
+        <p><b>② 如果你選擇用槓桿,它會把你的報酬和風險,各放大成什麼樣子。</b></p>
+      </div>
+      <p class="small">它<b>不會</b>跟你保證未來一定怎樣——其實沒有人做得到——而是幫你把上千種可能的市場走勢都跑一遍,讓你先看到「順利」「普通」和「不順」各會是什麼樣,心裡先有個底,比較安心。</p>
+
+      <h3>有 3 個小觀念,先放心裡就好</h3>
+      <div class="cards">
+        <div class="card"><div class="t">① 先存夠,之後就自由(FIRE)</div><div class="small mut">存到一筆夠大的錢之後,每年只要動用其中一小部分(大約 3.5～4%)就夠生活,你就不必再為錢工作了。算法很單純:<b>需要的總資產 ≈ 年支出 ÷ 提領率</b>。例如一年花 35 萬,大約需要 1000 萬。</div></div>
+        <div class="card"><div class="t">② 槓桿是一把雙面刃</div><div class="small mut">「正二」是每天追台股大盤 <b>2 倍</b>的工具。漲的時候賺兩倍很開心,但<b>跌的時候也賠兩倍</b>;而且行情上上下下盤整時,它會慢慢「磨損」——大盤明明漲回原點了,它卻還回不來。最壞時可能 −80% 以上、好幾年才回本。它很有力,但要小心用。</div></div>
+        <div class="card"><div class="t">③ 真正要盯的是「淨曝險」</div><div class="small mut">別只看「我買了多少槓桿」,要看<b>淨曝險</b>這個數字(各標的的比重 × 倍率加起來)。<b>100% 大概就等於把錢全押在大盤</b>;120～140% 算溫和;<b>超過 150% 就偏積極、風險高了</b>。記住這一個數字,你就掌握了一大半。</div></div>
+      </div>
+
+      <h3>✅ 出發前,陪你做個小檢查</h3>
+      <p class="small mut" style="margin-top:0">就像開車前先繫好安全帶一樣,投資(尤其是用槓桿)之前,有幾件事先確認好,你會安心很多。請放心,<b>這些勾選不會送到任何地方</b>,純粹是讓你自己心裡有數。誠實面對自己就好,沒有人會看到 🙂</p>
+      <div class="sbox" id="preflight">
+        <label class="chk"><input type="checkbox" id="chk1"> 我有至少 <b>6 個月生活費</b>的緊急預備金,而且是<b>放在這套投資之外</b>的。</label>
+        <label class="chk"><input type="checkbox" id="chk2"> 我有基本的 <b>醫療 / 失能 / 壽險</b>保障,萬一生病或意外,不會被迫賤賣資產。</label>
+        <label class="chk"><input type="checkbox" id="chk3"> 我<b>沒有高利率的負債</b>(像卡債、信貸;一般房貸不算)。</label>
+        <label class="chk"><input type="checkbox" id="chk4"> 我明白槓桿最壞可能<b>幾乎賠光</b>,而且我用的是<b>「就算賠光,也不會影響生活」的閒錢</b>。</label>
+        <div id="preflightMsg" class="small" style="margin-top:8px;font-weight:600"></div>
+      </div>
+
+      <h3>接下來怎麼用?三步就好</h3>
+      <ol class="small">
+        <li><b>1 · 設定</b>:填一下你的年齡、現有資產、每月能投入多少、一年大概花多少;再到「投資組合」用百分比,決定錢要怎麼分配。</li>
+        <li><b>2 · 結果</b>:按一下「▶ 開始計算」,稍等幾秒,就能看到你大約幾歲達成 FIRE、退休金夠不夠、資產可能怎麼成長。</li>
+        <li><b>3 · 風險與對照</b>:這一頁特別重要——它會把 2008、失落十年這些<b>真實的崩盤套在你的配置上</b>,讓你先感受看看「萬一真的遇到了,我扛不扛得住」。建議一定要看一下,對你很有幫助。</li>
+      </ol>
+
+      <details style="margin-top:14px"><summary>📚 看到不懂的詞?點這裡查就好(這很正常,別擔心)</summary>
+        <dl class="gloss">
+          <dt>FIRE</dt><dd>財務自由、提早退休。存到一筆錢,靠它的提領就能過活,不必為錢工作。</dd>
+          <dt>Coast FIRE</dt><dd>本金已夠大,之後<b>就算不再投入</b>、光靠複利也能在退休時達標——可以「滑行」了。</dd>
+          <dt>SWR 安全提領率</dt><dd>退休後每年可從資產提領的比例(常用 3.5–4%)。年支出 ÷ SWR = 你需要的總資產。</dd>
+          <dt>正二(00631L)</dt><dd>每日追蹤台股大盤 <b>2 倍</b>報酬的槓桿 ETF。漲跌都放大兩倍。</dd>
+          <dt>波動耗損</dt><dd>槓桿 ETF 每日重設,盤整來回會磨損本金——大盤漲回原點,它卻回不到原點。</dd>
+          <dt>逆價差</dt><dd>台指期的折價,長期讓台股 2x 的持有成本較低(近年壓縮、須監控)。</dd>
+          <dt>淨曝險</dt><dd>各標的權重 × 槓桿倍率的加總。100% ≈ 全押大盤,>150% = 積極槓桿。<b>你最該盯的風險刻度。</b></dd>
+          <dt>準備金</dt><dd>刻意留的現金,專門在<b>大跌時分批抄底</b>(不是平時的閒錢)。</dd>
+          <dt>蒙地卡羅模擬</dt><dd>用上千條隨機市場路徑模擬未來,給出<b>機率分布</b>而非單一預測。</dd>
+        </dl>
+      </details>
+
+      <div class="cta" style="margin-top:18px">
+        <button class="btn big" id="goSetup" type="button">▶ 我準備好了,開始規劃</button>
+        <button class="btn ghost big" id="loadSafe" type="button" style="margin-left:8px">🐣 還有點怕?先用「安全範例」(完全不開槓桿)</button>
+        <div class="small mut" style="margin-top:10px">沒關係,慢慢來。「安全範例」會幫你套入一組<b>完全沒有槓桿</b>的全球股票+債券配置,你可以先看懂最基本的樣子,等有信心了,再自己決定要不要嘗試槓桿。</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab" id="tab1" style="display:none">
+  <!-- 輸入 -->
+  <div class="panel">
+    <h2>① 你的狀況</h2>
+    <div class="grid g3">
+      <div class="field"><label>目前年齡</label><input type="number" id="age" value="35"></div>
+      <div class="field"><label>目標退休年齡(Coast 終點)</label><input type="number" id="retire" value="65"></div>
+      <div class="field"><label>目前可投資淨資產(萬)</label><input type="number" id="net" value="50"></div>
+      <div class="field"><label>每月再投入(萬)</label><input type="number" id="mon" value="1" step="0.1"></div>
+      <div class="field"><label>目前年支出(萬,今天購買力)</label><input type="number" id="exp" value="35"></div>
+      <div class="field"><label>退休後年金/勞退(萬/年,可填0)</label><input type="number" id="pension" value="0"></div>
+    </div>
+    <details style="margin-top:4px">
+      <summary>ⓘ 年支出預設 35 萬怎麼來的?要不要改成自己的?</summary>
+      <p>預設 <b>35 萬/年(約 2.9 萬/月)</b>,參考<b>主計總處 113 年(2024)家庭收支調查</b>:臺中市平均每戶消費支出 97.3 萬/年 ÷ 每戶 2.82 人 ≈ <b>每人每月 2.87 萬 ≈ 全年 34.5 萬</b>,取整 35 萬。各地差很多:<b>全國平均略低</b>、<b>臺北市最高(每人每月約 3.5 萬、≈ 全年 42 萬)</b>、非六都通常更低。</p>
+      <p><b>強烈建議改成「你自己的」年支出</b>——FIRE 算的是<b>你想要的退休生活水準</b>,不是平均值。它直接決定你的 FIRE 目標金額(= 年支出 ÷ 提領率)。</p>
+      <p class="mut"><b>退休後會一樣嗎?</b>不一定:退休族通常比工作時<b>少花約一兩成</b>(房貸繳清、通勤/治裝減少),但<b>晚年醫療、長照可能回升</b>。本工具把退休支出當「實質固定」,屬<b>偏保守</b>的假設(寧可抓多、別抓少)。</p>
+    </details>
+    <div class="grid g3">
+      <div class="field"><label>通膨率 %</label><input type="number" id="infl" value="2" step="0.1"></div>
+      <div class="field"><label>安全提領率 SWR %</label><input type="number" id="swr" value="3.5" step="0.1"></div>
+      <div class="field"><label>顯示模式</label>
+        <select id="dispmode" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
+          <option value="real" selected>今天購買力(實質)</option>
+          <option value="nom">名目金額</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid g3">
+      <div class="field"><label>分批進場:幾個月內投完(0=一次全投)</label><input type="number" id="dcaMonths" value="0" min="0" max="120" step="1"></div>
+      <div class="field" style="grid-column:span 2;display:flex;align-items:flex-end"><span class="small mut">設幾個月,就「<b>每月投一次</b>、平均分批投完」(例如 24 = 分 24 個月、每月一筆)。0 = 一次全投。會直接改變下方模擬。</span></div>
+    </div>
+    <details style="margin-top:4px">
+      <summary>ⓘ 分批進場是什麼?該設幾個月?</summary>
+      <p><b>分批進場 = 把一大筆錢分成數個月、每月陸續投入,而不是一次全壓。</b>它防的是「<b>買在高點、然後馬上崩</b>」這個進場時機風險。</p>
+      <p><b>誠實的取捨(本工具實測):</b></p>
+      <ul>
+        <li><b>長期(30 年退休終值):一筆全投平均略勝</b>——市場長期向上,越早投賺越多;分批等於手裡留現金、有機會成本。</li>
+        <li><b>但「進場頭 3 年的最大回撤」分批較淺</b>(實測中位 23%→19%、壞情境 40%→34%,看圖下方讀數)。它保護的是「剛進場就重傷、心態崩掉、提前出場」的短期風險。</li>
+      </ul>
+      <p><b>該設幾個月:</b>① 市場屢創新高、估值貴;② 你「怕買高」;③ <b>你用槓桿(正二/QLD)</b>——歐印槓桿在頂部 = −84% 回撤,最該分批;④ 大資金、無法靠每月薪水攤平。符合越多 → 設越久(12~24 月)。反之(年輕、小資金、純定投、不開槓桿)→ 設 0 月一次全投反而較好。</p>
+      <p class="mut"><b>別跟準備金搞混</b>:準備金(現金部位)全程保留、只在崩盤觸發時抄底;分批管「核心怎麼進場」、準備金管「崩盤怎麼加碼」,兩個是不同工具、一起用。</p>
+    </details>
+    <div class="grid g3">
+      <div class="field"><label>生命週期降槓(glide path)</label>
+        <select id="glide" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
+          <option value="0" selected>關閉(全程維持目標曝險)</option>
+          <option value="1">啟用(隨齡自動降槓)</option>
+        </select>
+      </div>
+      <div class="field"><label>從幾歲開始降槓</label><input type="number" id="glideStart" value="45" min="30" max="70" step="1"></div>
+      <div class="field" style="display:flex;align-items:flex-end"><span class="small mut">啟用後,隨年齡把正二/QLD 逐步移到債券,退休前約降到一半曝險。會直接改變模擬。</span></div>
+    </div>
+    <details style="margin-top:4px">
+      <summary>ⓘ 生命週期降槓(glide path)是什麼?該開嗎?</summary>
+      <p><b>生命週期投資法</b>(Ayres-Nalebuff):年輕時部位小、就算腰斬也是小錢、又有幾十年薪水能補 → 可以多開槓桿;<b>年紀越大、部位越大、能補的薪水越少 → 應該逐步降槓守成</b>,把賺到的果實保住。</p>
+      <p><b>它解決的問題</b>:你 35 歲腰斬是「300 萬變 150 萬」、還有 25 年薪水能補;但 60 歲腰斬是「2000 萬變 1000 萬」、而且<b>沒時間也沒金流補回來了</b>。這叫「退休前夕碰崩盤」風險,是會打爛整個退休計畫的存在性風險。</p>
+      <p><b>工具怎麼做</b>:啟用後,從你設的年齡(預設 45)開始,<b>每年自動把一點正二/QLD 賣掉、換成債券</b>,到退休前把槓桿降約 70%(起始淨曝險 ~107% → 退休前 ~55%)。效果會反映在模擬的<b>較淺回撤、較好的壞情境</b>上(上方「淨曝險」顯示的是起始值)。</p>
+      <p class="mut"><b>該開嗎</b>:想退休前更安穩、怕臨退休碰崩盤 → 開。年輕、還想衝、距退休很遠 → 可先關著,過幾年再開。預設關閉,基準投影不變。</p>
+    </details>
+    <div class="grid g3">
+      <div class="field"><label>模擬引擎</label>
+        <select id="engine" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
+          <option value="param" selected>參數化抽樣(預設,平滑)</option>
+          <option value="hist">歷史重抽 block-bootstrap(真實序列)</option>
+        </select>
+      </div>
+      <div class="field" style="grid-column:span 2;display:flex;align-items:flex-end"><span class="small mut">「歷史重抽」用<b>美國 1928–2024 真實年報酬</b>整段抽樣,保留<b>失落十年 / 序列風險 / 真實崩盤相關性</b>——通常會讓<b>槓桿配置看起來更危險(這才是真相)</b>。只套用在 ④ 機率帶圖。</span></div>
+    </div>
+    <details style="margin-top:4px">
+      <summary>ⓘ 「參數化」vs「歷史重抽」差在哪?該用哪個?</summary>
+      <p><b>參數化抽樣(預設)</b>:用常態+肥尾隨機抽每月報酬。優點:你能<b>自由設定</b>各標的年化/波動、曲線平順、速度快。缺點:<b>各月獨立(iid)、沒有序列記憶</b>——抽不出「連跌四年」「失落十年」這種真實逆境,會<b>系統性高估槓桿的安全性</b>。</p>
+      <p><b>歷史重抽(block-bootstrap)</b>:從<b>美股+美債 1928–2024 真實年報酬</b>中,一次抽一段<b>連續 4–12 年</b>串接成你的年限,所有標的用<b>同一段歷史年份</b>對齊。這樣就保留了<b>動能、均值回歸、失落十年、以及崩盤時相關性一起飆高</b>等真實結構。</p>
+      <p><b>實測差很大</b>:同一個「正二30/VTI33/現金37」,歷史模式的<b>回撤中位 58%→74%、退休成功率 82%→67%</b>——因為真實歷史有 1929–32(−80% 實質)、1970s 停滯、2000–09 失落十年這些 iid 抽不出來的多年序列,槓桿在這些序列裡會被狠咬。<b>這個落差,正是這個功能的價值。</b></p>
+      <p class="mut"><b>誠實限制</b>:① 台股 / QQQ 等以<b>美股史代理</b>其序列形狀(台股長期可靠資料不易取得);② <b>年內崩盤被抹平</b>(COVID 兩個月 −34% 會變成一整年);③ 歷史只有<b>一條已實現路徑</b>(本身也是一種倖存者偏差)。台股專屬的 1990 −80% 崩盤,另見「③ 風險與對照」的歷史崩盤壓測表。</p>
+      <p><b>該用哪個</b>:想看「平順的假設投影、自由調參數」→ <b>參數化</b>;想壓力測「真實多年逆境 / 序列風險對槓桿的傷害」→ <b>歷史重抽</b>。<b>兩個都看最好。</b></p>
+    </details>
+    <div class="grid g3">
+      <div class="field"><label>現金回市場機制</label>
+        <select id="mech" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
+          <option value="both" selected>再平衡 + 崩盤加碼(預設,平衡)</option>
+          <option value="rebal">純偏離帶再平衡(最穩)</option>
+          <option value="reserve">純崩盤加碼 −12/−22/−32/−42(衝報酬)</option>
+          <option value="orig">深觸發原型(正二 −50/−80)</option>
+          <option value="bh">買進持有(完全不調整)</option>
+        </select>
+      </div>
+      <div class="field" style="grid-column:span 2;display:flex;align-items:flex-end"><span class="small mut">決定「手上的現金怎麼回到市場」:賣高買低,還是只在崩盤抄底。會直接改變模擬。</span></div>
+    </div>
+    <details style="margin-top:4px">
+      <summary>ⓘ 現金回市場機制是什麼?怎麼選?(含實際操作手法)</summary>
+      <p><b>你手上的現金(再平衡的另一半 / 準備金),要用什麼規則放回市場?</b>核心是兩種相反哲學:<b>再平衡</b>(對稱、賣高買低、不預測,理論最扎實 Merton)vs <b>崩盤加碼</b>(不對稱、平時讓正二跑、只在崩盤抄底,賭「崩了會反彈」)。</p>
+      <p><b>📋 五種機制的實際操作手法(拿真錢怎麼做):</b></p>
+      <ol>
+        <li><b>再平衡 + 崩盤加碼(預設,平衡)</b>:平時<b>每半年~一年檢查一次</b>,任一部位偏離目標比例超過約 50% 就買賣拉回目標;另外保留的現金,當大盤<b>從高點回撤 −12 / −22 / −32 / −42%</b> 時,<b>分四批 1:2:3:4 買進正二</b>;之後大盤創新高,把超出目標的正二賣回現金、補足準備金。</li>
+        <li><b>純偏離帶再平衡(最穩、最省事)</b>:<b>只做再平衡</b>——每半年~一年檢查,偏離目標 &gt;50% 才動、買賣拉回。寬鬆即可、不必盯盤,常常數年才動一次。不另外留崩盤彈藥。</li>
+        <li><b>純崩盤加碼 −12/−22/−32/−42(衝報酬)</b>:多頭時<b>讓正二自由跑、不賣</b>;只在大盤回撤到那四個門檻時,用現金<b>分 1:2:3:4 買進</b>;創新高後補回現金。不做日常再平衡。</li>
+        <li><b>深觸發原型712(正二 −50/−80)</b>:只在<b>跌很深</b>(正二自身 −50%、−80%,約等於大盤 −25%、−40%)才<b>分兩大批</b>重壓抄底。觸發次數少、單批很重。</li>
+        <li><b>買進持有(完全不調整)</b>:買了就放著,<b>不再平衡、不加碼</b>。僅供對照——長期通常輸給有紀律的再平衡。</li>
+      </ol>
+      <p><b>怎麼選</b>:想最穩、睡得著 → <b>純再平衡</b>;想兼顧 → <b>兩者並用(預設)</b>;想衝報酬、扛得住 −73% 回撤、相信會反彈 → <b>純崩盤加碼</b>(適合年輕、長年限)。<b>怕買高的你 → 偏再平衡那端。</b></p>
+      <p class="mut">五種機制的報酬 / 回撤 / 壞情境<b>對照數據</b>,見「③ 風險與對照」分頁的機制對照表。</p>
+    </details>
+    <div class="grid g3">
+      <div class="field"><label>退休提領方式</label>
+        <select id="flexW" style="width:100%;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--txt)">
+          <option value="0" selected>固定提領(每年花一樣,不管市場)</option>
+          <option value="1">彈性提領(跌時少花,最低花到目標 70%)</option>
+        </select>
+      </div>
+      <div class="field" style="grid-column:span 2;display:flex;align-items:flex-end"><span class="small mut">彈性提領=壞年份主動少花一點(花到目標的 70~120% 之間),能大幅提高「退休成功率」——是最便宜的退休保險。影響 ③ 的成功率。</span></div>
+    </div>
+    <details style="margin-top:4px">
+      <summary>ⓘ 固定 vs 彈性提領?差在哪?</summary>
+      <p><b>固定提領</b>:不管市場好壞,每年都花一樣的錢(隨通膨調整)。這是 4% 法則的假設,但最危險——剛退休就碰崩盤、又照常花,本金會被加速掏空(序列風險)。</p>
+      <p><b>彈性提領(本工具做法)</b>:把每年支出綁在「當前資產的固定比例」,但設<b>地板 70%、上限 120%</b>。<b>市場跌 → 當年少花一點(最低花到目標的 70%);市場漲 → 多花一點(最高 120%)。</b></p>
+      <p><b>為什麼有效</b>:壞年份少花,等於不在谷底硬賣本金 → 本金撐得更久 → <b>退休成功率明顯提高</b>(實測例如 80%→86%、70%→80%,提領越激進、改善越大)。代價是壞年份要忍受少花(最多砍到目標的 70%)。</p>
+      <p class="mut">這是退休理財最有效、最便宜的保險——比多存錢、晚退休都划算。真實的人本來就會「手頭緊就少花」,固定提領反而不真實。</p>
+    </details>
+    <details style="margin-top:4px">
+      <summary>ⓘ 通膨率怎麼設?為什麼預設 2%?</summary>
+      <p>通膨讓「同樣的錢」未來買得更少。工具預設用<b>今天購買力</b>顯示,就是把未來金額用通膨還原,避免被名目大數字騙。</p>
+      <ul>
+        <li><b>2%</b>:台灣長期 CPI 約 1–2%,取 2% 偏保守。</li>
+        <li>調高(如 3%)→ 目標金額變大、達成變難(更保守);調低 → 反之。</li>
+        <li>它也會從報酬裡扣:你的<b>實質報酬 ≈ 名目報酬 − 通膨</b>。</li>
+      </ul>
+    </details>
+    <details style="margin-top:4px">
+      <summary>ⓘ 安全提領率(SWR)是什麼?為什麼預設 3.5%?</summary>
+      <p><b>SWR = 退休後每年可從本金提領的比例</b>(逐年隨通膨調整)。本工具用它反推目標:<b>FIRE 數字 = 年支出 ÷ SWR</b>。</p>
+      <ul>
+        <li><b>4% 法則(Bengen 1994 / Trinity Study 1998)</b>:用美股歷史測「提初始本金 4%、逐年加通膨、撐 30 年」,幾乎不會破產 → FIRE 數字 = 年支出 ×25。</li>
+        <li><b>為什麼預設較保守的 3.5%(×28.6)</b>:① 前瞻報酬比 20 世紀低、現在估值偏高;② 提早退休年限可能 40–50 年(比 30 年更嚴苛);③ 組合有槓桿、序列風險更大。學界(Morningstar、Pfau、Early Retirement Now)在這些條件下多落在 3.3–3.5%。</li>
+        <li><b>怎麼調</b>:確定 65 歲才退、且能彈性縮支出 → 可拉到 4%;想更安心 / 早退 / 長壽 → 3.0–3.25%。</li>
+      </ul>
+      <p class="mut">前提:這假設「提領僵硬」(不管市場好壞都固定提)。若你願意壞年份少花一點,實際能撐更高的提領率。它是機率,不是保證。</p>
+    </details>
+  </div>
+
+  <!-- 投組 -->
+  <div class="panel">
+    <h2>② 投資組合(權重加總需 = 100%)</h2>
+    <p class="taglegend">每格標示「<b>前瞻基準年化 · 年化波動 · 歷史最大回撤</b>」;<b>點「ⓘ 理由」可展開該標的的完整說明</b>。<br>
+    年化為已扣倖存者偏差的<b>前瞻假設</b>(非歷史);波動取近年實測年化值、最大回撤取<b>歷史最深</b>(如 S&P 2008 −55%、Nasdaq 2000 −83%、黃金 2011–15 −45%)。<br>
+    標籤:🟢核心打底 · 🟡注意集中/利率 · 🟠進攻、波動大 · 🔴槓桿、尾部風險。<br>
+    調整方式:<b>直接在每格右側填入權重數字</b>(不必湊到 100%,會自動正規化);<b>改任何欄位都會自動重算</b>(下方按鈕只是重新隨機抽樣)。</p>
+    <div id="weights"></div>
+    <div class="row" style="margin-top:10px;align-items:flex-start;gap:16px;flex-wrap:wrap">
+      <div style="text-align:center;flex:none">
+        <canvas id="pieChart" style="width:118px;height:118px;background:transparent;border-radius:0"></canvas>
+        <div class="small mut" style="margin-top:2px">正規化(計算用)</div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div>權重合計:<b id="wsum">0</b>% <span class="small" id="wnote"></span></div>
+        <div id="pieLegend" class="small" style="margin-top:7px;display:flex;flex-wrap:wrap;gap:5px 14px"></div>
+        <div class="small mut" style="margin:11px 0 4px">你填的原始權重(<span style="color:#fff">白線</span> = 100% 基準;超過=過配、不足=低配):</div>
+        <div id="rawBar" style="position:relative;height:18px;background:#222c38;border:1px solid var(--line);border-radius:4px"></div>
+      </div>
+    </div>
+    <div id="netExpBox" class="levbox" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"></div>
+    <div class="levbox">
+      <div class="levhead"><span>🔴 正二／QLD 槓桿假設</span></div>
+      <div class="small" id="l2formula" style="margin:4px 0 2px"></div>
+      <div class="small" id="qldformula" style="margin:0 0 11px"></div>
+      <div class="grid g3" style="gap:13px">
+        <div>
+          <div class="wt"><span>逆價差(正二,−%/年)</span><span><b id="carryv">3.0</b>%</span></div>
+          <input type="range" class="slider" id="carry" min="-1" max="5" step="0.5" value="3">
+        </div>
+        <div>
+          <div class="wt"><span>波動耗損(共用,−%/年)</span><span><b id="voldragv">1.5</b>%</span></div>
+          <input type="range" class="slider" id="voldrag" min="0" max="4.5" step="0.5" value="1.5">
+        </div>
+        <div>
+          <div class="wt"><span>融資成本(QLD,−%/年)</span><span><b id="qldfinv">4.0</b>%</span></div>
+          <input type="range" class="slider" id="qldfin" min="0" max="5" step="0.5" value="4">
+        </div>
+      </div>
+      <div class="small" style="margin-top:9px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <button class="btn ghost" id="reloadCarry" type="button" style="padding:3px 9px;font-size:12px">↻ 更新逆價差</button>
+        <span id="carryInfo" class="mut"></span>
+      </div>
+      <details style="margin-top:9px">
+        <summary>ⓘ 這幾個假設是什麼?怎麼調?</summary>
+        <p><b>正二 = 2×大盤(7%) − 波動耗損 − 內扣(1.3%) − 逆價差;QLD = 2×QQQ(8%) − 波動耗損 − 內扣(0.95%) − 融資成本。</b></p>
+        <p><b>① 逆價差+成本</b>:正二靠台指期複製槓桿,期貨折溢價影響報酬——順風(往左/負)加分、逆風(往右/正)扣分。<b>數字的正負是方向、不是加減</b>:「+3%」代表「每年約 3% 的逆風拖累」。預設值由 carry.json 每月自動載入 =「近 5 年的平均拖累」(目前那個平均剛好約 +3%/年),旁邊另顯示「當年(近1年)」看是否在惡化。歷史:2015–21 是 −3%(順風)→ 2022–25 反轉成 +5%(逆風)。手動查:搜「台指期 逆價差」,折價大→往左、折價消失→往右。</p>
+        <p><b>② 波動耗損(正二/QLD 共用)</b>:每日重設 2× 槓桿穿越波動的複利損失。理論 σ²≈4.4%(假設天天洗),但實測 0050 vs 完美2x(2016–26)<b>全期實際只 −0.6%</b>(強趨勢年甚至負的,只有盤整年 2018 接近理論)。故預設折衷 <b>1.5%</b>。怕失落十年式盤整 → 拉 3–4%;信續強趨勢 → 拉 0。<b>註:這是共用值——實測台股 0050 近10年≈0%、但美股 QQQ≈2.5%(波動較大);若你重壓 QLD,可把此值上調到 ~2.5%。</b></p>
+        <p><b>③ 融資成本(QLD 專用)</b>:美股 2x 靠 SWAP 借錢開槓桿,對借的部分付利息 <b>≈ 美元短率</b>。<b>台股正二沒有這項</b>(它的對應物是逆價差),所以兩者分開算。2010–21 零利率時 ≈ 0(QLD/TQQQ 那時神到爆);現在短率 ~4.3% → 拖累約 4%。預設 <b>+4%</b>(對齊現況);利率走低 → 往左,利率走高 → 往右。實測已驗證:升息後 QLD 成本比零利率時代高約 3.4%,確實跟著利率跑。</p>
+      </details>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn ghost" id="resetBtn" type="button" style="padding:4px 11px;font-size:12px">↺ 重設為預設值</button>
+      <span class="small mut" id="status"></span>
+    </div>
+  </div>
+
+  <div class="cta">
+    <div class="small mut" id="ctaHint" style="margin-bottom:10px">填好上面的「① 你的狀況」與「② 投資組合」後,按下開始計算。約 2~3 秒會跳到「2 · 結果」,並在背景把「3 · 風險與對照」一起算好(切過去不必再等)。<b>每按一次都會重新隨機抽樣一批。</b></div>
+    <button class="btn big" id="startBtn" type="button">▶ 開始計算</button>
+    <div class="prog" id="coreProg"><span></span></div>
+  </div>
+  </section>
+
+  <section class="tab" id="tab2" style="display:none">
+  <div class="small mut" id="coreStatus" style="margin-bottom:10px"></div>
+  <!-- 結果卡 -->
+  <div class="panel">
+    <h2>③ 你的 FIRE 里程碑(中位情境)</h2>
+    <p class="taglegend"><b>上排</b>:三種「財務自由」各自<b>幾歲達成</b>(取所有市場情境的中位)。<b>下排</b>:你要存的<b>目標金額</b>、這個計畫的<b>達成把握</b>、以及要承受的<b>風險代價</b>。</p>
+    <div class="cards">
+      <div class="card good"><div class="k">Coast FIRE 達成</div><div class="v" id="coastAge">—</div><div class="r" id="coastR">之後可不再為退休存錢</div></div>
+      <div class="card"><div class="k">Full FIRE 達成</div><div class="v" id="fireAge">—</div><div class="r" id="fireR">可完全不工作</div></div>
+      <div class="card warn"><div class="k">Barista(半退休)</div><div class="v" id="baristaAge">—</div><div class="r">資產可覆蓋一半支出</div></div>
+    </div>
+    <details style="margin-top:12px">
+      <summary>ⓘ Coast / Full / Barista FIRE 差在哪?</summary>
+      <ul>
+        <li><b>Coast FIRE(滑行自由)</b>:本金已經夠大,<b>就算從此不再為退休投一毛錢</b>,光靠複利也能在退休年齡長到 FIRE 數字。達成後你只要賺到「當下生活費」就好、退休金不用再存——這是<b>人生的鬆綁點</b>。</li>
+        <li><b>Full FIRE(完全自由)</b>:本金已達 FIRE 數字,<b>可以完全不工作</b>,靠提領過活。</li>
+        <li><b>Barista FIRE(半退休)</b>:本金能覆蓋<b>一半</b>生活費,另一半靠輕鬆的兼職/接案(名字來自「去咖啡店打工順便拿福利」)。介於 Coast 與 Full 之間的彈性選項。</li>
+      </ul>
+      <p class="mut">三個都用「中位情境」估達成年齡——實際會因市場好壞而提前或延後。</p>
+    </details>
+    <div class="grid g3" style="margin-top:14px">
+      <div class="sbox">
+        <div class="small">🎯 目標:你要存到多少(今天購買力)</div>
+        <div style="font-size:22px;font-weight:700" id="fireNum">—</div>
+        <div class="small mut" id="fireNumNom"></div>
+      </div>
+      <div class="sbox">
+        <div class="small">✅ 達成把握度(65 歲前存到目標)</div>
+        <div style="font-size:22px;font-weight:700" id="pFire">—</div>
+        <div class="small mut">在數千種模擬的市場情境裡,能準時達標的比例。<b>不是 100% 很正常</b>——市場有好有壞,這格越高代表你的計畫越穩。</div>
+      </div>
+      <div class="sbox">
+        <div class="small">⚠️ 風險代價:過程一度腰斬的機率</div>
+        <div style="font-size:22px;font-weight:700" id="pDD">—</div>
+        <div class="small mut">多少比例的情境中,資產<b>曾一度跌掉一半以上</b>。這是用槓桿換報酬的代價——數字越高,越要先確認自己「跌成這樣也抱得住」。</div>
+      </div>
+    </div>
+    <div class="sbox" id="ddBox" style="margin-top:12px"></div>
+    <div id="successBox" class="levbox" style="margin-top:12px"></div>
+  </div>
+
+  <!-- 圖 -->
+  <div class="panel">
+    <h2>④ 資產成長機率帶(Monte Carlo)</h2>
+    <canvas id="mainChart"></canvas>
+    <div class="legend">
+      <span><i style="background:#4fc3f7"></i>中位(P50)</span>
+      <span><i style="background:rgba(79,195,247,.25);height:10px"></i>P10–P90 區間</span>
+      <span><i style="background:#fb8c00;border-top:2px dashed #fb8c00;background:transparent"></i>FIRE 數字</span>
+      <span><i style="background:#43a047;border-top:2px dashed #43a047;background:transparent"></i>Coast 目標線</span>
+      <span><i style="background:#9aa7b3;border-top:2px dashed #9aa7b3;background:transparent"></i>純 0050 躺平(中位,基準)</span>
+    </div>
+    <div id="cagrReadout" class="sbox" style="margin-top:10px"></div>
+    <p class="small mut" style="margin-top:8px;line-height:1.75">
+      縱軸為<b>對數刻度</b>;每次模擬 1500 條路徑、<b>月步</b>,含肥尾(Student-t)與資產相關性。<br>
+      <b>現金回市場機制</b>依你在 ① 的選擇(純再平衡 / 崩盤加碼 −12/−22/−32/−42 / 兩者並用 / 買進持有)。崩盤加碼的觸發基準 = 「1x 全市場指數」自高點回撤,按 1:2:3:4 倒進槓桿核心。<br>
+      <b>分批進場、生命週期降槓</b>(若啟用)也會反映在內;正二/QLD 以「2× 標的 − 波動耗損 − 內扣 − 逆價差/融資」近似建模。<br>
+      <b>⚠️ 未含「巨災尾部閘門」</b>:故最壞情境(P10)偏保守——純價格分不出「錯殺(會反彈)」與「結構衰退(價值陷阱)」,硬做閘門會誤觸發。真實策略在多年大蕭條會降槓、停止加碼,把最壞尾部從「滅頂」救成「存活」。
+    </p>
+  </div>
+
+  </section>
+
+  <section class="tab" id="tab3" style="display:none">
+  <div class="prog" id="riskProg" style="max-width:none;margin:0 0 10px"><span></span></div>
+  <div class="small mut" id="riskStatus" style="margin-bottom:10px"></div>
+  <!-- 標的對照 -->
+  <div class="panel">
+    <h2>⑤ 標的對照:同樣的你,換不同標的會怎樣?</h2>
+    <table id="cmp"><thead><tr>
+      <th>配置</th><th>基準年化</th><th>Coast 年齡(中位)</th><th>退休時資產(中位)</th><th>壞情境 P10</th><th>最大回撤(中位)</th>
+    </tr></thead><tbody></tbody></table>
+    <p class="small mut" style="margin-top:8px">「壞情境 P10」= 1/10 機率會更差的退休資產;「最大回撤」= 過程中曾經的帳面最深跌幅。看完這張就懂:<b>正二在沒大崩盤時不一定贏,贏在崩盤修復;而它的回撤遠比 0050 深</b>。</p>
+
+    <h2 style="margin-top:22px">機制對照:同樣的你,換不同「現金回市場機制」會怎樣?</h2>
+    <table id="mcmp"><thead><tr>
+      <th>機制</th><th>退休時資產(中位)</th><th>壞情境 P10</th><th>好情境 P90</th><th>最大回撤(中位)</th><th>哲學</th>
+    </tr></thead><tbody></tbody></table>
+    <p class="small mut" style="margin-top:8px;line-height:1.75">
+      用你目前的配置,只換「手上現金怎麼回市場」的規則,比較各機制的報酬/回撤。<b>沒有單一贏家</b>:純加碼報酬最高但回撤最深、純再平衡最穩但報酬中等、兩者並用居中(加碼多賺來自平均曝險較高,非加碼魔法)。<br>
+      <b>👉 每種機制的「實際操作手法」與「怎麼選」,集中寫在「① 設定」的機制說明卡裡。</b>
+    </p>
+  </div>
+
+  <!-- 壓力測試 -->
+  <div class="panel">
+    <h2>⑥ 壓力測試:有崩盤 vs 無崩盤(本工具最重要的觀念)</h2>
+    <p class="small">同樣 100 萬、6 年,比較三種做法。<b>準備金加碼版</b>會在大盤回撤 −12/−22/−32/−42 時,把現金分 1:2:3:4 投入正二。</p>
+    <div class="stressgrid" id="stress"></div>
+    <p class="small mut" style="margin-top:8px">看出來了嗎:<b class="good">無崩盤</b>時純 0050 與靜態版差不多、加碼版沒機會發揮;<b class="bad">有崩盤</b>時,在谷底加碼的準備金版把便宜的正二買進,修復後反超。這就是「正二+準備金」現在賺的東西——<b>崩盤保險,不是平時多賺</b>。</p>
+
+    <h3 style="margin:18px 0 4px">📉 歷史崩盤壓測(把過去四場大崩盤套到<b>你目前的配置 + 機制</b>,並與純 0050 對照)</h3>
+    <p class="small mut" style="line-height:1.75">
+      用你在 ①② 的權重與機制,確定性地走過四段歷史崩盤路徑(以「1x 大盤」為驅動,正二/QLD 以 2× 路徑自帶波動耗損)。每個情境都<b>並排「你的配置」與「純 0050 買進持有」</b>當錨點。<br>
+      <b>谷底</b> = 整段最深回撤;　<b>回本時間</b> = 帳戶漲回起點要幾年;　<b>走完後倍數</b> = 整段結束時的本金倍數。<br>
+      <b>看「回本」欄要先看 0050 那列</b>:若連 0050 都未回本,代表是這個<b>劇本本身不反彈</b>(市場的問題、非你的策略);只有「0050 已回本、你的配置卻仍虧損」才是槓桿配置的真風險(會標紅 ⚠️)。
+    </p>
+    <table id="scen">
+      <thead><tr><th style="text-align:left">歷史情境</th><th>配置</th><th>谷底最深跌幅</th><th>回本時間</th><th>走完後倍數</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <details style="margin-top:8px"><summary>ⓘ 每個情境的「總長度」是怎麼算出來的?(點開看分解)</summary>
+      <p class="small mut" style="margin-top:8px">總長度 = <b>崩跌月數 ＋ 修復回前高月數 ＋ 尾段月數</b>。注意:<b>總長度 ≠ 修復回前高的時間</b>。「修復回前高」只是 1x 大盤從谷底漲回原起點要多久;後面還接一段<b>尾段</b>——模擬崩盤後的延續(歷史上大崩盤多半會創新高的多頭,或「失落十年」那種跌完盤整不回),用來觀察你的策略在「市場回到原點之後」是繼續賺、還是被波動耗損咬。各情境的長度依其真實歷史節奏設定,故彼此不同(COVID 只 2 年、2000 泡沫 9 年)。</p>
+      <table id="sceninfo">
+        <thead><tr><th style="text-align:left">情境</th><th>崩跌</th><th>修復回前高</th><th>尾段(多頭/盤整)</th><th>總長度</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </details>
+    <p class="small mut" style="margin-top:6px;line-height:1.75">
+      ⚠️ 這是<b>風格化</b>的代表性路徑(用「跌幅深度 × 崩跌月數 × 修復月數 × 尾段」生成平滑月路徑),非逐日真實報價;目的是比較「你的配置在不同形狀的崩盤下,相對純 0050 扛不扛得住」。<br>
+      <b>失落十年</b>(跌完盤整十年不回)是槓桿的真正死穴——但留意:它連純 0050 都收在虧損,那是「不反彈劇本」的本質,任何長期持有股票都會輸。此時要看的不是「有沒有回本」,而是<b>「你比 0050 多虧多少」</b>(槓桿在盤整盤會被耗損咬得更兇)。
+    </p>
+  </div>
+
+  </section>
+
+  <section class="tab" id="tab4" style="display:none">
+  <!-- 觀念卡 -->
+  <div class="panel">
+    <h2>⑦ 觀念說明(務必讀:槓桿真相 · 配置邏輯 · 抱得住的心法)</h2>
+    <p class="taglegend">點開每張卡看詳解,分三類:<br>
+      <b>① 槓桿真相</b>:2 倍不等於 2 倍報酬、短期 ≠ 長期。<br>
+      <b>② 配置邏輯</b>:正二 vs 0050、準備金、債券、再平衡、加碼機制比較。<br>
+      <b>③ 行為心法</b>:怎麼真的撐過 −50% 回撤——紅酒比喻、心理帳戶、後悔最小化。</p>
+    <details><summary>📌 為什麼 2 倍槓桿的「預期報酬」可能比原型還低?</summary>
+      <p>直覺以為「正二 = 0050 × 2」,但那只在<b>單邊上漲</b>成立。長期年化要扣三層:</p>
+      <ul>
+        <li><b>① 波動耗損 ≈ σ²(約 −4.4%/年)</b>:每日重設槓桿,漲跌來回會破洞,波動越大破越凶。</li>
+        <li><b>② 內扣費用(約 −1.3%/年)</b>。</li>
+        <li><b>③ 逆價差(曾是 +3%,現已反轉成 −5%)</b>。</li>
+      </ul>
+      <p>結果:7% 的原型,2 倍後前瞻基準只剩 <b class="warn">~5%</b>。「2 倍」是倍率,不是報酬保證。</p>
+    </details>
+    <details><summary>📌 短期倍率 ≠ 長期年化(別被綠色月份沖昏頭)</summary>
+      <p>近一個月 0050 +11.7%、正二 +22.3%(≈1.9 倍)——沒錯,單邊噴出時槓桿就是這樣。</p>
+      <p>但看會回檔的真實市場:<b>2021–2022 盤整,0050 +3.3%,正二只有 +0.2%(0.06 倍!)</b>。漲的月份多賺、跌與盤整的月份被耗損吃光 → 沉澱到年化 ~5%。用一個噴出的月份推斷長期,就是倖存者偏差。</p>
+    </details>
+    <details><summary>📌 正二+準備金 vs 純 0050,誰比較好?(核心觀念)</summary>
+      <p><b>歷史上(2003–2025)</b>:50% 正二+50% 現金的 Sharpe 0.73 &gt; 0050 的 0.69——避險版贏。但歐印版(100%正二)Sharpe 只有 0.66,是劣解。</p>
+      <p><b>前瞻(逆價差已反轉)</b>:這優勢大半是「免費逆價差」撐的,現在那塊沒了。沒大崩盤+逆價差壞時,純 0050 原始報酬反而可能贏。</p>
+      <p><b>決定勝負的唯一變數 → 你的年限內會不會遇到大崩盤?</b></p>
+      <ul>
+        <li>會崩 + 你有紀律照表抄底 → <b class="good">準備金版贏</b>(谷底買便宜正二,修復快)。</li>
+        <li>一路緩漲沒大崩 → <b class="warn">0050 贏</b>(準備金閒置、正二被逆價差拖)。</li>
+      </ul>
+      <p>結論:這套現在賺的是「<b>崩盤保險 + 抱得住的紀律</b>」,不是「平時多賺」。所以——正二要節制、核心要分散、準備金才是真核心。</p>
+    </details>
+    <details><summary>📌 為什麼要留現金準備金?</summary>
+      <p>它不是為了擇時,是為了兩件事:<b>①谷底有彈藥</b>(機械化照表加碼);<b>②抱得住</b>(手上有現金,你不會在 −56% 谷底恐慌砍在最低)。報告證實:避險版的優勢有一大塊純粹來自「不會在底部被洗掉」——那是心理優勢。</p>
+    </details>
+    <details><summary>📌 債券什麼時候才該加?</summary>
+      <p>累積期(年輕)幾乎不需要——你的「安全部位」是<b>現金準備金</b>(零波動、隨時能抄底)。長債有利率風險(2022 跌 −30%),當不了崩盤彈藥。<b>債券是 55 歲後降槓守成、壓低「退休前夕碰崩盤」順序風險時才加重的資產</b>。</p>
+    </details>
+    <details><summary>📌 再平衡要多勤?(帶寬其實不重要)</summary>
+      <p><b>再平衡 = 定期把配置拉回目標</b>(賣掉漲多的、補買跌多的),自動「賣高買低」。本工具實測 50%正二+50%現金、30 年:</p>
+      <ul>
+        <li><b>有沒有再平衡差很多</b>:買進持有不動 → 正二長期壓過現金、變成幾乎全正二 → 回撤 69%、分布極端;有再平衡 → 中位更高、壞情境更好、<b>回撤從 69% 降到 56%</b>。</li>
+        <li><b>但帶寬設多寬幾乎不影響</b>:偏離 50% 才拉回(30 年只做 ~4 次)vs 每月都拉回(360 次)→ 中位、回撤幾乎一樣,差別只在交易次數。</li>
+      </ul>
+      <p><b>結論:用「寬鬆的偏離帶」(偏離 50% 才動、很少次)就好</b>——跟勤快再平衡幾乎一樣的效果,卻省下大量交易、手續費、稅、力氣(加上成本後,勤做反而更差)。這也是經典的「偏離 50% 再平衡、數年才動一次」做法。</p>
+    </details>
+
+    <details><summary>📌 加碼 vs 再平衡 vs CPPI:哪個機制最好?(完整結論)</summary>
+      <p>「手上的現金怎麼回到市場」有三種哲學。本工具用月步 Monte Carlo 跑過(都從 50%正二+50%現金、起點 100 萬、30 年、實質):</p>
+      <table style="font-size:12px">
+        <thead><tr><th>機制</th><th>中位</th><th>壞p10</th><th>回撤</th><th>哲學</th></tr></thead>
+        <tbody>
+          <tr><td>純偏離帶再平衡</td><td>417</td><td><b>90</b></td><td><b>−58%</b></td><td>不預測(Merton)</td></tr>
+          <tr><td>再平衡+崩盤加碼(預設)</td><td>455</td><td>76</td><td>−63%</td><td>平衡</td></tr>
+          <tr><td>純崩盤加碼 −12/−22/−32/−42</td><td><b>640</b></td><td>55</td><td>−73%</td><td>逆勢/賭反彈</td></tr>
+          <tr><td>深觸發原型(−50/−80)</td><td>617</td><td>53</td><td>−74%</td><td>逆勢/賭反彈</td></tr>
+          <tr><td>CPPI(順勢/保險)*</td><td>~100</td><td>69</td><td><b>−32%</b></td><td>賭趨勢</td></tr>
+          <tr><td>買進持有(不調整)</td><td>344</td><td>58</td><td>−70%</td><td>—</td></tr>
+        </tbody>
+      </table>
+      <p><b>三個結論:</b></p>
+      <ul>
+        <li><b>沒有單一贏家,是「報酬 vs 風險」的取捨</b>:純加碼報酬最高(640)但回撤最深(−73%)、壞情境最差;純再平衡報酬中等(417)但最穩(回撤 −58%、壞情境最好)。</li>
+        <li><b>加碼多賺的,主要是「平均曝險較高」(讓正二自由跑),不是加碼魔法</b>——高曝險=高報酬+高風險,沒有白吃的午餐。原型712 與新版幾乎一樣(新版略勝)。</li>
+        <li><b>CPPI(跌減碼、漲加碼)在這裡慘敗</b>(報酬幾乎沒成長)——因為正二高波動 + 市場會反彈,它一直在谷底賣、漲回才買,被洗死;只有回撤最淺(−32%)。<b>逆勢派(再平衡/加碼)勝、順勢派(CPPI)輸,前提是「崩盤會反彈」。</b>*本工具因此不提供 CPPI。</li>
+      </ul>
+      <p class="mut"><b>👉 各機制的「實際操作手法」與「怎麼選」已集中在「① 設定」的機制說明卡</b>;這裡只放完整對照數據與理論結論(避免重複)。</p>
+    </details>
+
+    <details><summary>📌 行為層①:你的成本是「現在的市價」,不是「當初買的價」(紅酒比喻)</summary>
+      <p><b>這是整套槓桿投資法的哲學地基,也是最該學起來的一塊。</b></p>
+      <p><b>紅酒比喻</b>:你用 100 元買的一瓶紅酒,現在市價漲到 500 元。今天你把它喝掉,你喝掉的成本是 <b>500 元</b>(因為你放棄了賣 500 元的機會),<b>不是當初的 100 元</b>。</p>
+      <p>套到投資:<b>評估一個部位該不該續抱,要看「它現在值多少、未來值不值得抱」,不是看「你當初買多少」。</b>當初的買入價是已經發生、改變不了的「沉沒成本」,跟你現在的決定無關。</p>
+      <p>這個觀念可以打爆三種常見的自我安慰:</p>
+      <ul>
+        <li><b>「買入成本殖利率」</b>:有人說「我成本低,這股息相對我的成本有 10%」——錯。該用<b>現價</b>算殖利率,否則只是拿低成本騙自己。</li>
+        <li><b>「零成本」</b>:領幾年股息就說「我已經零成本了,之後跌再多都不算虧」——這是自欺,你的部位現在值多少就是多少。</li>
+        <li><b>「凹單 / 套牢不認賠」</b>:跌了就抱著想「還沒賣就不算虧」——這叫成本錨定,讓你抱著爛部位、不做該做的調整。</li>
+      </ul>
+      <p><b>為什麼對你重要</b>:用「現價」客觀評估每個部位,你才會做出理性的續抱或調整,而不是被「我買在 XX 元」綁架。這是純觀念,但能直接改善你的進出場紀律。</p>
+    </details>
+
+    <details><summary>📌 行為層②:把資產拆成兩個「心理帳戶」,你才抱得住</summary>
+      <p><b>心理帳戶</b>:人腦會不自覺把錢分成不同的「帳戶」,同一筆錢放在不同帳戶,感覺完全不同。投資要<b>善用</b>這個人性,而不是對抗它。</p>
+      <p><b>關鍵對比</b>(兩者的「市場曝險」其實一模一樣):</p>
+      <ul>
+        <li><b>100% 歐印 0050</b> = 一個帳戶。任何風吹草動都直接打在你唯一的帳戶上,跌 10% 就讓你心驚膽跳。</li>
+        <li><b>50% 正二(2x)+ 50% 現金</b> = 兩個帳戶。市場曝險一樣是 100%(跌一樣多),但你心裡會想:<b>「反正最多就虧那 50% 的正二,我手上還有另外 50% 現金。」</b></li>
+      </ul>
+      <p><b>一個反直覺的重點</b>:50% 正二(2 倍)的市場曝險 = 100% 的 0050(跌的時候兩者帳面虧一樣多)。但「手上看得到一半現金」的心理感受,跟「全部都在股票裡」<b>天差地遠</b>——前者讓你在 −50% 谷底時不會恐慌、不會砍在最低點。</p>
+      <p><b>為什麼對你重要</b>:回測證明「留現金的版本」會贏,有一大塊原因純粹是「<b>有現金、所以不會在底部被洗出場</b>」——那是心理優勢,價值不輸給任何配置公式。這個工具一直告訴你「會吃 −50% 回撤」,而這個「拆帳戶」的心法,就是幫你<b>真的撐過那 −50%</b> 的工具。</p>
+    </details>
+
+    <details><summary>📌 行為層③:50:50 的真正理由——把「後悔」最小化</summary>
+      <p><b>人性的矛盾</b>:股市漲時,你恨不得早就全壓(沒買滿會嘔);股市跌時,你希望早就清倉(套牢會後悔)。<b>「漲全都要、跌都不要」——這兩個願望天生衝突。</b></p>
+      <p><b>50:50 的解法</b>:不賭哪一邊,各放一半:</p>
+      <ul>
+        <li>漲的時候:有一半在賺 → 「幸好有買」,不會太嘔。</li>
+        <li>跌的時候:有一半安全 → 「幸好有留現金」,不會太後悔。</li>
+      </ul>
+      <p>它的目標不是「報酬最大化」,而是<b>「後悔最小化」</b>——讓你不管漲跌都心安,才撐得久。</p>
+      <p><b>大咖背書</b>:諾貝爾經濟學獎得主馬可維茲(現代投資組合理論之父),自己的退休金<b>沒有用他得獎的複雜公式,而是用最簡單的 50:50</b>。他說理由就是:「股市漲了我沒投資會很嘔,跌了套牢會後悔,所以乾脆一半一半。」巴菲特的老師葛拉漢也建議股票比例落在 25%~75% 之間,標準答案就是 50:50。</p>
+      <p><b>為什麼對你重要</b>:再完美的策略,只要你執行不下去(中途被嚇到砍掉),就等於零。「50:50 + 用槓桿把報酬補回來」讓你「漲也爽、跌也行」,這才是能撐過 30 年的關鍵。<b>順應人性,才能長久。</b></p>
+    </details>
+  </div>
+
+  <!-- 引用 -->
+  <div class="panel">
+    <h2>⑧ 引用／參考來源</h2>
+    <p class="small"><b>主要策略來源(兩位不同作者)</b>:</p>
+    <ul class="small" style="margin:4px 0 10px">
+      <li><b>大仁哥</b>(letf.com.tw 部落格、《槓桿 ETF 投資法》作者;PTT 帳號 <b>Capufish</b>,即「正二哥」——同一人多個筆名):台股「正二槓桿投資法」本體——50:50 槓桿配置、偏離帶再平衡、曝險刻度、生命週期投資法、行為層。</li>
+      <li><b>onekoni</b>(PTT 帳號):準備金提列「<b>712</b>」框架(7:1:2 切分)+ 崩盤漸進加碼(−12/−22/−32/−42 分批,早期原型「正二 −50/−80」深觸發)。</li>
+    </ul>
+    <details open><summary>這些來源的核心操作理念(主要為大仁哥;準備金加碼框架取自 onekoni)</summary>
+      <ul>
+        <li><b>50:50 槓桿配置</b>:用一半資金買正二(2x)達到 100% 股票曝險,另一半留現金——「漲也有賺、跌也安心」。</li>
+        <li><b>以「曝險比例」為唯一風險刻度</b>:不擇時、不選股、不停損,只用曝險高低控制風險。</li>
+        <li><b>偏離帶再平衡</b>:漲多賣、跌多買,維持目標比例(賣高買低)。</li>
+        <li><b>崩盤逢低加碼</b>:手上現金在大跌時分批抄底(由淺到深漸進重壓);早期版本用「正二 −50/−80」深觸發。</li>
+        <li><b>生命週期投資法</b>:年輕多開槓桿(風險分散到整個投資週期、化解報酬順序風險),隨齡降槓守成。</li>
+        <li><b>行為層</b>:成本=當下市價(紅酒比喻)、心理帳戶、後悔最小化——幫人「抱得住」。</li>
+        <li><b>台股逆價差優勢</b>:台指期長期逆價差,讓台股 2x 相對美股 2x 成本更低(但近年壓縮、須監控)。</li>
+      </ul>
+    </details>
+    <details><summary>學術／理論基礎</summary>
+      <ul>
+        <li><b>安全提領率(4% 法則)</b>:Bengen(1994)、Trinity Study(1998)。</li>
+        <li><b>生命週期投資法</b>:Ayres &amp; Nalebuff《Lifecycle Investing》。</li>
+        <li><b>固定比例為最優</b>:Merton(1969,CRRA 投資人最優=固定比例連續再平衡);Perold-Sharpe(1988,constant-mix vs CPPI)。</li>
+        <li><b>50:50 後悔最小化</b>:Markowitz(現代投組理論)、Graham《智慧型股票投資人》、Bernstein《投資人宣言》。</li>
+        <li><b>投資組合保險(CPPI)</b>:Black-Jones(1987)、Perold-Sharpe(1988)。</li>
+        <li><b>數據</b>:Yahoo Finance(0050 / 00631L / VOO 等歷史價)、台灣證交所報酬指數(逆價差驗證)。</li>
+      </ul>
+    </details>
+    <p class="small mut" style="margin-top:8px"><b>免責聲明</b>:本工具為教育與試算用途,<b>非投資建議</b>;所有報酬皆為前瞻假設、非保證,過去績效不代表未來。槓桿投資可能造成重大虧損,請依自身狀況審慎評估。</p>
+  </div>
+
+  <p class="small mut">v2 規劃:歷史 block-bootstrap 機率帶(用真實歷史報酬序列取代參數化抽樣)。本檔可直接丟 GitHub Pages。</p>
+  </section>
+</div>
+
+<script>
+"use strict";
+// ---------- 工具 ----------
+const $=id=>document.getElementById(id);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function randn(){let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+// Student-t (df) normalised to unit variance
+function studentT(df){let chi=0;for(let i=0;i<df;i++){const z=randn();chi+=z*z;}const t=randn()/Math.sqrt(chi/df);return t/Math.sqrt(df/(df-2));}
+function fmtW(v){ // v in 萬
+  if(!isFinite(v))return '—';
+  if(Math.abs(v)>=10000)return (v/10000).toFixed(2)+'億';
+  return Math.round(v).toLocaleString()+'萬';
+}
+function pct(x){return (x*100).toFixed(1)+'%';}
+
+// ---------- 標的 ----------
+// muNom: 名目幾何年化基準; sigma: 年化波動; rho: 與市場因子相關
+// 正二/QLD 基準 = 2×標的 − 波動耗損(volDrag,可調)− 內扣 − 逆價差(carryDrag,可調)
+function getVolDrag(){return (+($('voldrag')?$('voldrag').value:1.5))/100;}
+function getFin(){return (+($('qldfin')?$('qldfin').value:4))/100;}
+function l2muNom(carryDrag,volDrag){if(volDrag==null)volDrag=getVolDrag();const muU=0.07;return 2*muU-volDrag-0.013-carryDrag;}
+// QLD(美股2x):無逆價差,改扣 SWAP 融資成本(≈美元短率)
+function qldMuNom(financing,volDrag){if(financing==null)financing=getFin();if(volDrag==null)volDrag=getVolDrag();const muU=0.08;return 2*muU-volDrag-0.0095-financing;}
+function assetDefs(carryDrag,volDrag){
+  if(volDrag==null)volDrag=getVolDrag();
+  return {
+    VT:  {name:'VT 全球股',muNom:0.065,sigma:0.16,rho:0.88},
+    VTI: {name:'VTI 美股大盤',muNom:0.07,sigma:0.16,rho:0.85},
+    VOO: {name:'VOO 標普500',muNom:0.07,sigma:0.16,rho:0.85},
+    TW50:{name:'0050 台股大盤',muNom:0.07,sigma:0.21,rho:0.80},
+    QQQ: {name:'QQQ 那斯達克100',muNom:0.08,sigma:0.22,rho:0.82},
+    L2:  {name:'00631L 正二(台股2x)',muNom:l2muNom(carryDrag,volDrag),sigma:0.42,rho:0.80},
+    QLD: {name:'QLD 美股2x',muNom:qldMuNom(getFin(),volDrag),sigma:0.44,rho:0.82},
+    CASH:{name:'現金/短債(準備金)',muNom:0.015,sigma:0.01,rho:0.0},
+    BOND:{name:'債券(後期)',muNom:0.04,sigma:0.06,rho:-0.10},
+    GOLD:{name:'黃金(選配)',muNom:0.045,sigma:0.15,rho:0.10},
+  };
+}
+const ORDER=['VT','VTI','VOO','TW50','QQQ','L2','QLD','CASH','BOND','GOLD'];
+const DEFAULT_W={VT:0,VTI:33,VOO:0,TW50:0,QQQ:0,L2:30,QLD:0,CASH:37,BOND:0,GOLD:0};
+const ASSET_META={
+  VT:  {tag:'🟢',vol:0.17,dd:-0.58,role:'VT｜全球股票一網打盡(美歐日及新興市場數千檔)。最分散、最不押單一國家,倖存者偏差風險最低,適合當核心打底、長抱不用管。報酬不會最高但最穩、最省心。USD 計價,含匯率風險。'},
+  VTI: {tag:'🟢',vol:0.18,dd:-0.55,role:'VTI｜一檔抱滿整個美股(大中小型全含)。過去長期動能最強、科技權重高,當核心成長引擎。風險:集中單一國家(美國)、USD 計價含匯率。'},
+  VOO: {tag:'🟢',vol:0.18,dd:-0.55,role:'VOO｜美國 S&P 500,500 大企業,美股最經典的大盤指標。跟 VTI(全美股)幾乎一樣(VTI 多含中小型股),兩者選一即可、別重複。核心打底、長抱不用管。USD 計價,含匯率風險。'},
+  TW50:{tag:'🟡',vol:0.21,dd:-0.57,role:'0050｜台股前 50 大權值股,等於押台股大盤。優點:台幣計價、無匯率、你最熟悉的市場。風險:高度集中台積電(占比極高),買它等於半押一檔股票。'},
+  QQQ: {tag:'🟠',vol:0.22,dd:-0.83,role:'QQQ｜那斯達克 100,美股科技成長股集中(蘋果、輝達、微軟…)。長期報酬亮眼但波動大、估值常偏高;2000 網路泡沫曾崩 −83%。當進攻配置、別當全部。'},
+  L2:  {tag:'🔴',vol:0.42,dd:-0.84,role:'00631L 正二｜台股大盤的「每日 2 倍槓桿」。本策略只拿它當「崩盤時用準備金抄底、加速修復」的工具,不是平時歐印買進持有。回撤可達 −84%、逆價差已反轉成拖累。嚴禁再疊融資/質押(會被斷頭)。'},
+  QLD: {tag:'🔴',vol:0.44,dd:-0.80,role:'QLD｜那斯達克的「每日 2 倍槓桿」。靠 SWAP 借錢開槓桿,成本隨美元利率走(現在利率高、拖累大),沒有台股的逆價差;2000 式崩盤尾部極慘。選配進攻、只放小量。'},
+  CASH:{tag:'🟢',vol:0.01,dd:0,role:'現金/短債｜不是閒錢,是策略的核心武器:①崩盤時的抄底彈藥 ②讓你抱得住、不被洗出場。零波動,任何階段都要留一塊;「準備金比例」是這套策略最重要的旋鈕。'},
+  BOND:{tag:'🟡',vol:0.06,dd:-0.17,role:'債券｜退休前(約 55 歲後)降槓守成、壓低「退休前夕碰崩盤」風險時才加重。年輕累積期幾乎不需要——你的安全部位是現金準備金,不是長債(長債有利率風險,2022 曾跌 −30%)。'},
+  GOLD:{tag:'🟡',vol:0.16,dd:-0.45,role:'黃金｜危機時與股市低相關的分散工具,但長期無息、報酬普通。當「睡得安穩」的選配小量(建議 ≤5–10%),預設 0。'},
+};
+const ASSET_COLOR={VT:'#43a047',VTI:'#26a69a',VOO:'#1e88e5',TW50:'#fbc02d',QQQ:'#fb8c00',L2:'#e53935',QLD:'#d81b60',CASH:'#78909c',BOND:'#5c6bc0',GOLD:'#c9a227'};
+const SHORT={VT:'VT',VTI:'VTI',VOO:'VOO',TW50:'0050',QQQ:'QQQ',L2:'正二',QLD:'QLD',CASH:'現金',BOND:'債',GOLD:'金'};
+const DNAME={VT:'VT 全球股',VTI:'VTI 美股',VOO:'VOO 標普500',TW50:'0050 台股',QQQ:'QQQ 那斯達克',L2:'00631L 正二',QLD:'QLD 美股2x',CASH:'現金準備金',BOND:'債券',GOLD:'黃金'};
+const CATS=[
+  {label:'🇹🇼 台股(國內)',keys:['TW50','L2']},
+  {label:'🌎 海外股',keys:['VT','VTI','VOO','QQQ','QLD']},
+  {label:'🛡️ 防禦／其他',keys:['CASH','BOND','GOLD']},
+];
+
+// ---------- 權重 UI ----------
+function buildWeights(){
+  const host=$('weights');host.innerHTML='';
+  const cd=(+($('carry')?$('carry').value:3))/100;
+  const defs=assetDefs(cd);
+  CATS.forEach((cat,ci)=>{
+    const lab=document.createElement('div');lab.className='catlabel'+(ci===0?' first':'');lab.textContent=cat.label;host.appendChild(lab);
+    const grid=document.createElement('div');grid.className='grid g2';host.appendChild(grid);
+    cat.keys.forEach(k=>{
+      const d=defs[k],m=ASSET_META[k];
+      const div=document.createElement('div');div.className='asset';
+      div.innerHTML=`
+        <div class="top">
+          <span class="nm"><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${ASSET_COLOR[k]};margin-right:5px;vertical-align:middle"></i>${m.tag} ${DNAME[k]}</span>
+          <span class="small"><input type="number" class="numw" id="n_${k}" min="0" max="100" step="1" value="${DEFAULT_W[k]}">%</span>
+        </div>
+        <div class="ameta">年化 <b id="amu_${k}">${pct(defs[k].muNom)}</b> · 波動 <b>${pct(m.vol)}</b> · 回撤 <b>${(m.dd*100).toFixed(0)}%</b> · <span class="rolehint">ⓘ 理由</span></div>
+        <div class="roletext">${m.role}</div>`;
+      grid.appendChild(div);
+      const nm=div.querySelector('#n_'+k);
+      nm.addEventListener('input',updateWsum);
+      nm.addEventListener('change',()=>{nm.value=clamp(+nm.value||0,0,100);updateWsum();markDirty();});
+      const hint=div.querySelector('.rolehint'),rt=div.querySelector('.roletext');
+      hint.addEventListener('click',()=>rt.classList.toggle('show'));
+    });
+  });
+  updateWsum();
+}
+function getWeights(){const w={};ORDER.forEach(k=>w[k]=(+$('n_'+k).value||0)/100);return w;}
+function updateWsum(){
+  let s=0;ORDER.forEach(k=>s+=(+$('n_'+k).value||0));
+  const sr=Math.round(s*10)/10, ok=Math.abs(s-100)<0.05;
+  $('wsum').textContent=sr;
+  $('wsum').className=ok?'good':'totbad';
+  $('wnote').textContent=ok?'✓ 圖例即實際配置':`合計 ${sr}% → 計算時自動正規化成 100%(圖例 % 為正規化後)`;
+  drawPie();
+  // 淨曝險(主風險刻度)
+  const neb=$('netExpBox');
+  if(neb){
+    const w=getWeights();let wt=0,e=0;
+    ORDER.forEach(k=>{wt+=w[k];const lev=(k==='L2'||k==='QLD')?2:(k==='CASH'?0:(k==='BOND'?0.3:1));e+=w[k]*lev;});
+    const ne=wt>0?e/wt:0, p=Math.round(ne*100);
+    const col=ne>1.5?'var(--bad)':(ne>1.2?'var(--warn)':(ne>=0.9?'var(--good)':'var(--mut)'));
+    const lvl=ne>1.5?'積極(高風險)':ne>1.2?'溫和槓桿':ne>=0.9?'約等於全押大盤':'保守(低於大盤)';
+    neb.innerHTML=`<div style="flex:none"><div class="small mut">🎯 淨曝險(你真正的風險刻度)</div><div style="font-size:27px;font-weight:700;color:${col}">${p}%</div></div>`+
+      `<div class="small mut" style="flex:1;min-width:190px"><b style="color:${col}">${lvl}</b>。換算:100% ≈ 全押 0050;120–140% = 溫和槓桿;>150% 積極。<br>= 各標的權重 × 倍率(正二/QLD 算 2x、現金 0、債券 ~0.3)。「曝險比例」就是最該盯住的單一風險刻度。</div>`;
+  }
+}
+function drawPie(){
+  const cv=$('pieChart');if(!cv)return;const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1, S=120;
+  cv.width=S*dpr;cv.height=S*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,S,S);
+  const w=getWeights();let tot=0;ORDER.forEach(k=>tot+=w[k]);
+  const cx=S/2,cy=S/2,rO=S/2-3,rI=S/2-21;
+  let a0=-Math.PI/2,legHTML='';
+  if(tot<=0){ctx.beginPath();ctx.arc(cx,cy,rO,0,2*Math.PI);ctx.fillStyle='#2a3744';ctx.fill();}
+  else ORDER.forEach(k=>{
+    if(w[k]<=0)return;const a1=a0+(w[k]/tot)*2*Math.PI;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,rO,a0,a1);ctx.closePath();ctx.fillStyle=ASSET_COLOR[k];ctx.fill();
+    a0=a1;
+    legHTML+=`<span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${ASSET_COLOR[k]};margin-right:5px;vertical-align:middle"></i>${SHORT[k]} ${Math.round(w[k]/tot*100)}%</span>`;
+  });
+  // 中空(不寫合計%,合計已由下方長條與「權重合計」呈現)
+  ctx.beginPath();ctx.arc(cx,cy,rI,0,2*Math.PI);ctx.fillStyle='#1a212b';ctx.fill();
+  if($('pieLegend'))$('pieLegend').innerHTML=legHTML;
+  // 原始權重長條(可超過/不足 100%,白線為基準)
+  const rb=$('rawBar');
+  if(rb){
+    const totPct=tot*100, scaleMax=Math.max(100,totPct);
+    if(tot<=0){rb.innerHTML='';}
+    else{
+      let left=0,seg='';
+      ORDER.forEach(k=>{if(w[k]<=0)return;const wp=w[k]*100/scaleMax*100;seg+=`<div title="${SHORT[k]} ${Math.round(w[k]*100)}%" style="position:absolute;top:0;bottom:0;left:${left}%;width:${wp}%;background:${ASSET_COLOR[k]}"></div>`;left+=wp;});
+      const mk=(100/scaleMax*100).toFixed(1);
+      rb.innerHTML=`<div style="position:absolute;inset:0;border-radius:3px;overflow:hidden">${seg}</div>`+
+        `<div style="position:absolute;top:-3px;bottom:-3px;left:${mk}%;width:2px;background:#fff;box-shadow:0 0 3px #000"></div>`;
+    }
+  }
+}
+
+// ---------- 混合報酬 ----------
+function blendedMuNom(w,defs){let m=0,tot=0;ORDER.forEach(k=>{m+=w[k]*defs[k].muNom;tot+=w[k];});return tot>0?m/tot:0;}
+function netExposure(w){ // 正二/QLD 算 2x
+  let e=0;ORDER.forEach(k=>{const lev=(k==='L2'||k==='QLD')?2:( (k==='CASH')?0: (k==='BOND'?0.3:1) );e+=w[k]*lev;});return e;
+}
+
+// ---------- 歷史 block-bootstrap 資料(美國年報酬 1928–2024,Damodaran NYU Stern;CPI: usinflationcalculator)----------
+// 名目年報酬,於載入時換算成「實質」(real =(1+名目)/(1+CPI)−1)以對齊引擎的實質框架
+const HIST_Y0=1928;
+const HIST_STOCK_NOM="0.4381,-0.0830,-0.2512,-0.4384,-0.0864,0.4998,-0.0119,0.4674,0.3194,-0.3534,0.2928,-0.0110,-0.1067,-0.1277,0.1917,0.2506,0.1903,0.3582,-0.0843,0.0520,0.0570,0.1830,0.3081,0.2368,0.1815,-0.0121,0.5256,0.3260,0.0744,-0.1046,0.4372,0.1206,0.0034,0.2664,-0.0881,0.2261,0.1642,0.1240,-0.0997,0.2380,0.1081,-0.0824,0.0356,0.1422,0.1876,-0.1431,-0.2590,0.3700,0.2383,-0.0698,0.0651,0.1852,0.3174,-0.0470,0.2042,0.2234,0.0615,0.3124,0.1849,0.0581,0.1654,0.3148,-0.0306,0.3023,0.0749,0.0997,0.0133,0.3720,0.2268,0.3310,0.2834,0.2089,-0.0903,-0.1185,-0.2197,0.2836,0.1074,0.0483,0.1561,0.0548,-0.3655,0.2594,0.1482,0.0210,0.1589,0.3215,0.1352,0.0138,0.1177,0.2161,-0.0423,0.3121,0.1802,0.2847,-0.1804,0.2606,0.2488".split(",").map(Number);
+const HIST_BOND_NOM="0.0084,0.0420,0.0454,-0.0256,0.0879,0.0186,0.0796,0.0447,0.0502,0.0138,0.0421,0.0441,0.0540,-0.0202,0.0229,0.0249,0.0258,0.0380,0.0313,0.0092,0.0195,0.0466,0.0043,-0.0030,0.0227,0.0414,0.0329,-0.0134,-0.0226,0.0680,-0.0210,-0.0265,0.1164,0.0206,0.0569,0.0168,0.0373,0.0072,0.0291,-0.0158,0.0327,-0.0501,0.1675,0.0979,0.0282,0.0366,0.0199,0.0361,0.1598,0.0129,-0.0078,0.0067,-0.0299,0.0820,0.3281,0.0320,0.1373,0.2571,0.2428,-0.0496,0.0822,0.1769,0.0624,0.1500,0.0936,0.1421,-0.0804,0.2348,0.0143,0.0994,0.1492,-0.0825,0.1666,0.0557,0.1512,0.0038,0.0449,0.0287,0.0196,0.1021,0.2010,-0.1112,0.0846,0.1604,0.0297,-0.0910,0.1075,0.0128,0.0069,0.0280,-0.0002,0.0964,0.1133,-0.0442,-0.1783,0.0388,-0.0164".split(",").map(Number);
+const HIST_CPI="-0.017,0.0,-0.023,-0.09,-0.099,-0.051,0.031,0.022,0.015,0.036,-0.021,-0.014,0.007,0.05,0.109,0.061,0.017,0.023,0.083,0.144,0.081,-0.012,0.013,0.079,0.019,0.008,0.007,-0.004,0.015,0.033,0.028,0.007,0.017,0.01,0.01,0.013,0.013,0.016,0.029,0.031,0.042,0.055,0.057,0.044,0.032,0.062,0.11,0.091,0.058,0.065,0.076,0.113,0.135,0.103,0.062,0.032,0.043,0.036,0.019,0.036,0.041,0.048,0.054,0.042,0.03,0.03,0.026,0.028,0.03,0.023,0.016,0.022,0.034,0.028,0.016,0.023,0.027,0.034,0.032,0.028,0.038,-0.004,0.016,0.032,0.021,0.015,0.016,0.001,0.013,0.021,0.024,0.018,0.012,0.047,0.08,0.041,0.029".split(",").map(Number);
+// 換算實質年報酬
+const HIST_SR=HIST_STOCK_NOM.map((s,i)=>(1+s)/(1+HIST_CPI[i])-1); // 美股實質
+const HIST_BR=HIST_BOND_NOM.map((b,i)=>(1+b)/(1+HIST_CPI[i])-1); // 美債實質
+const HIST_N=HIST_SR.length; // 97
+// 區塊抽樣:連續 4~12 年為一塊、串接到填滿年限(保留多年序列/動能/均值回歸/失落十年)
+function sampleBlockYears(n){
+  const out=[];
+  while(out.length<n){
+    const blk=4+Math.floor(Math.random()*9), s=Math.floor(Math.random()*HIST_N);
+    for(let j=0;j<blk&&out.length<n;j++)out.push((s+j)%HIST_N);
+  }
+  return out;
+}
+// 某年某標的的「實質年報酬」(股票類一律用美股史代理;槓桿=2×標的−耗損;債/金/現金各自處理)
+function histAnnualReal(k,yi,vd,cdg,qf){
+  if(k==='BOND')return HIST_BR[yi];
+  if(k==='CASH')return 0;        // 現金實質≈0(歷史上幾乎只追平通膨)
+  if(k==='GOLD')return 0.01;     // 黃金以長期實質~1%代理(無逐年資料)
+  const s=HIST_SR[yi];
+  // (1+s)² 近似每日重設 2x 的年內非線性(−50%年→−75%);再扣 vd 代表年內每日波動耗損(年資料看不到)、內扣、逆價差/融資
+  if(k==='L2') return Math.max(-0.95,Math.pow(1+s,2)-1-(vd+0.013+cdg));   // 正二
+  if(k==='QLD')return Math.max(-0.95,Math.pow(1+s,2)-1-(vd+0.0095+qf));   // QLD
+  return s; // VOO/VTI/VT/TW50/QQQ 一律以美股實質史代理
+}
+
+// ---------- Monte Carlo（月步;含分批進場 + 準備金谷底加碼）----------
+function simulate(w,defs,opts){
+  const {age0,maxAge,retire,annualContrib,infl,paths}=opts;
+  const histMode=opts.engine==='hist'; // 歷史 block-bootstrap 模式
+  const _vd=(opts.volDrag!=null?opts.volDrag:0.015), _cdg=(opts.carryDrag!=null?opts.carryDrag:0.03), _qf=(opts.qldFin!=null?opts.qldFin:0.04);
+  const dcaMonths=Math.max(0,opts.dcaMonths||0), dcaTr=Math.max(1,opts.dcaTranches||1);
+  const annualWithdraw=Math.max(0,opts.withdraw||0); // 退休後每年提領(實質,今天購買力)
+  const flexWithdraw=!!opts.flexWithdraw; // 彈性提領:跌時少花(% 資產、70%地板/120%上限)
+  let tot=0;ORDER.forEach(k=>tot+=w[k]);const wn={};ORDER.forEach(k=>wn[k]=tot>0?w[k]/tot:0);
+  const active=ORDER.filter(k=>wn[k]>1e-9);
+  // 生命週期降槓:啟用時把 BOND 納入(降槓的目的地),即使初始權重 0
+  const glideOn=(+(opts.glide||0))===1 && active.some(k=>k==='L2'||k==='QLD');
+  if(glideOn && !active.includes('BOND')) active.push('BOND');
+  const nYears=maxAge-age0, nMonths=nYears*12;
+  const dM={},sM={},rho={};
+  active.forEach(k=>{dM[k]=Math.log(1+Math.max(-0.99,defs[k].muNom-infl))/12;sM[k]=defs[k].sigma/Math.sqrt(12);rho[k]=defs[k].rho;});
+  // 1x「全市場指數」月參數:正二→0050標的、QLD→QQQ標的(供準備金觸發用,不含槓桿)
+  function uM(k){
+    if(k==='L2') return {d:Math.log(1+Math.max(-0.99,defs.TW50.muNom-infl))/12,s:defs.TW50.sigma/Math.sqrt(12),rho:defs.TW50.rho};
+    if(k==='QLD')return {d:Math.log(1+Math.max(-0.99,defs.QQQ.muNom-infl))/12,s:defs.QQQ.sigma/Math.sqrt(12),rho:defs.QQQ.rho};
+    return {d:dM[k],s:sM[k],rho:rho[k]};
+  }
+  const equityKeys=active.filter(k=>k!=='CASH'&&k!=='BOND');
+  let eqTot=0;equityKeys.forEach(k=>eqTot+=wn[k]);
+  const eqW={};equityKeys.forEach(k=>eqW[k]=eqTot>0?wn[k]/eqTot:0);
+  const leverKeys=active.filter(k=>k==='L2'||k==='QLD');
+  let leverW=0;leverKeys.forEach(k=>leverW+=wn[k]);
+  // 生命週期降槓:隨齡把正二/QLD 逐步移到債券(退休前約降 70% 槓桿)
+  const glideStart=Math.max(age0,+(opts.glideStart||45)), glideEnd=retire, deleverFrac=0.7;
+  function wnAt(age){
+    if(!glideOn) return wn;
+    const t=clamp((age-glideStart)/Math.max(1,glideEnd-glideStart),0,1);
+    if(t<=0) return wn;
+    const w2={};active.forEach(k=>w2[k]=wn[k]||0);
+    let freed=0;leverKeys.forEach(k=>{const cut=wn[k]*t*deleverFrac;w2[k]-=cut;freed+=cut;});
+    w2['BOND']=(w2['BOND']||0)+freed;
+    return w2;
+  }
+  const hasMech=(opts.reserveMech!==false)&&wn['CASH']>1e-9&&leverKeys.length>0&&equityKeys.length>0;
+  // 現金回市場機制:both(再平衡+加碼,預設) / rebal(純偏離帶再平衡) / reserve(純-12/-22/-32/-42) / orig(原型712 -25/-40) / bh(買進持有)
+  const mech=opts.mech||'both';
+  const THR = mech==='orig'?[-0.25,-0.40]:[-0.12,-0.22,-0.32,-0.42];
+  const POR = mech==='orig'?[0.5,0.5]:[0.1,0.2,0.3,0.4];
+  // 分批:非現金核心於 dcaMonths 內分 dcaTr 筆投入;現金準備金第一天就到位
+  const coreKeys=active.filter(k=>k!=='CASH');let coreW=0;coreKeys.forEach(k=>coreW+=wn[k]);
+  const coreRW={};coreKeys.forEach(k=>coreRW[k]=coreW>0?wn[k]/coreW:0);
+  const trM=[];for(let j=0;j<dcaTr;j++)trM.push(Math.round(j*dcaMonths/dcaTr));
+  const cashM=Math.log(1+Math.max(-0.5,0.015-infl))/12; // 待投核心放現金、賺現金利率
+
+  const cols=[];for(let y=0;y<=nYears;y++)cols.push(new Float64Array(paths));
+  const Vfinal=new Float64Array(paths),VatRetire=new Float64Array(paths),maxDDarr=new Float64Array(paths),early3=new Float64Array(paths),survive=new Float64Array(paths);
+  const net0=opts.net0;const rIdx=clamp(retire-age0,0,nYears);
+
+  for(let p=0;p<paths;p++){
+    const h={};active.forEach(k=>h[k]=0);h['CASH']=(wn['CASH']||0)*net0;
+    let pend=coreW*net0, trIdx=0, trDep=0;const totT=trM.length;
+    const deploy=()=>{const a=pend/(totT-trDep);pend-=a;trDep++;coreKeys.forEach(k=>h[k]+=a*coreRW[k]);};
+    while(trIdx<totT&&trM[trIdx]===0){deploy();trIdx++;}
+    let mkt=1,peak=1,maxdd=0,peakV=net0,reserveBase=h['CASH']||0,fired=[false,false,false,false],edd=0,ruined=false,Vret=0;
+    const histYears=histMode?sampleBlockYears(nYears):null; // 本條路徑的歷史年份序列
+    cols[0][p]=net0;
+    for(let mo=1;mo<=nMonths;mo++){
+      const ageNow=age0+mo/12;
+      const wT=wnAt(ageNow);
+      let idxRet=0;
+      if(histMode){
+        const yi=histYears[Math.floor((mo-1)/12)];
+        const sMon=Math.pow(1+HIST_SR[yi],1/12)-1; // 1x 標的(美股實質)月報酬,供準備金觸發
+        for(let i=0;i<active.length;i++){
+          const k=active[i];
+          h[k]*=Math.pow(1+histAnnualReal(k,yi,_vd,_cdg,_qf),1/12); // 年報酬平滑成月步
+          if(eqW[k]>0)idxRet+=eqW[k]*sMon;
+        }
+      }else{
+        const m=studentT(5);
+        for(let i=0;i<active.length;i++){
+          const k=active[i];const eps=randn();
+          const shock=rho[k]*m+Math.sqrt(Math.max(0,1-rho[k]*rho[k]))*eps;
+          h[k]*=Math.exp(dM[k]+sM[k]*shock);
+          if(eqW[k]>0){const u=uM(k);const us=u.rho*m+Math.sqrt(Math.max(0,1-u.rho*u.rho))*eps;idxRet+=eqW[k]*(Math.exp(u.d+u.s*us)-1);}
+        }
+      }
+      pend*=Math.exp(cashM);
+      if(ageNow<=retire){for(let i=0;i<active.length;i++)h[active[i]]+=(annualContrib/12)*(wT[active[i]]||0);}
+      else if(annualWithdraw>0){let Vc=pend;active.forEach(k=>Vc+=h[k]);let wd;if(flexWithdraw&&Vret>0){const tgt=(annualWithdraw/Vret)*Vc;wd=clamp(tgt,annualWithdraw*0.7,annualWithdraw*1.2)/12;}else wd=annualWithdraw/12;if(Vc>0){const f=Math.min(1,wd/Vc);active.forEach(k=>h[k]-=h[k]*f);pend-=pend*f;}}
+      while(trIdx<totT&&trM[trIdx]===mo){deploy();trIdx++;}
+      const dcaDone=mo>=dcaMonths;
+      mkt*=(1+idxRet);
+      let V=0;active.forEach(k=>V+=h[k]);V+=pend;
+      if(dcaDone){
+        // 偏離帶再平衡(rebal/both):任一標的相對目標偏離 >50% 就拉回(賣高買低)
+        if(mech==='rebal'||mech==='both'){
+          let dev=0;active.forEach(k=>{const tw=wT[k]||0;if(tw>0.02){const d=Math.abs(h[k]/V-tw)/tw;if(d>dev)dev=d;}});
+          if(dev>0.5)active.forEach(k=>h[k]=(wT[k]||0)*V);
+        }
+        // 準備金加碼 + 創新高補回(reserve/orig/both)
+        if(mech==='reserve'||mech==='orig'||mech==='both'){
+          if(mkt>=peak){peak=mkt;fired=[false,false,false,false];if(mech!=='both')active.forEach(k=>h[k]=(wT[k]||0)*V);reserveBase=h['CASH']||0;}
+          else if(hasMech){const dd=mkt/peak-1;for(let j=0;j<THR.length;j++)if(dd<=THR[j]&&!fired[j]){const amt=Math.min(POR[j]*reserveBase,h['CASH']);if(amt>0){h['CASH']-=amt;leverKeys.forEach(k=>h[k]+=amt*(wn[k]/leverW));}fired[j]=true;}}
+        }else{if(mkt>peak)peak=mkt;}
+      }else{if(mkt>peak)peak=mkt;}
+      V=0;active.forEach(k=>V+=h[k]);V+=pend;if(V<0)V=0;
+      if(Vret===0&&ageNow>=retire)Vret=Math.max(1,V);
+      if(ageNow>retire&&V<=0.01)ruined=true;
+      if(mo%12===0)cols[mo/12][p]=V;
+      if(V>peakV)peakV=V;const dd2=peakV>0?(peakV-V)/peakV:0;if(dd2>maxdd)maxdd=dd2;
+      if(mo<=36&&dd2>edd)edd=dd2;
+    }
+    Vfinal[p]=cols[nYears][p];VatRetire[p]=cols[rIdx][p];maxDDarr[p]=maxdd;early3[p]=edd;survive[p]=ruined?0:1;
+  }
+  const p10=[],p50=[],p90=[];
+  const buf=new Float64Array(paths);
+  for(let y=0;y<=nYears;y++){
+    buf.set(cols[y]);const a=Array.from(buf).sort((x,z)=>x-z);
+    p10.push(a[Math.floor(0.10*paths)]);
+    p50.push(a[Math.floor(0.50*paths)]);
+    p90.push(a[Math.floor(0.90*paths)]);
+  }
+  return {p10,p50,p90,Vfinal,VatRetire,maxDDarr,early3,survive,nYears,age0,hasMech};
+}
+
+function percentile(arr,q){const a=Array.from(arr).sort((x,z)=>x-z);return a[clamp(Math.floor(q*a.length),0,a.length-1)];}
+function fracGE(arr,th){let c=0;for(let i=0;i<arr.length;i++)if(arr[i]>=th)c++;return c/arr.length;}
+function fracGEdd(arr,th){let c=0;for(let i=0;i<arr.length;i++)if(arr[i]>=th)c++;return c/arr.length;}
+// 解出「資金加權報酬(IRR)」:期初 V0、每年底投入 contrib、共 years 年,長成 Vend 所需的年化 r
+function impliedCAGR(V0,contrib,years,Vend){
+  if(years<=0)return 0;
+  const f=r=>{let v;if(Math.abs(r)<1e-9)v=V0+contrib*years;else v=V0*Math.pow(1+r,years)+contrib*(Math.pow(1+r,years)-1)/r;return v-Vend;};
+  let lo=-0.95,hi=3.0;if(f(lo)>0)return lo;if(f(hi)<0)return hi;
+  for(let i=0;i<200;i++){const mid=(lo+hi)/2;if(f(mid)>0)hi=mid;else lo=mid;if(hi-lo<1e-7)break;}
+  return (lo+hi)/2;
+}
+
+// ---------- Coast / FIRE 計算 ----------
+function milestones(sim,opts,fireNum){
+  const {age0,retire,infl}=opts;
+  const realR=opts.blendedReal;
+  // Coast need at age a (today's money)
+  const coastLine=[];
+  for(let y=0;y<=sim.nYears;y++){
+    const a=age0+y;
+    let need;
+    if(a>=retire)need=fireNum;
+    else if(realR<=0)need=Infinity;
+    else need=fireNum/Math.pow(1+realR,retire-a);
+    coastLine.push(need);
+  }
+  // find crossover on median path
+  let coastAge=null,fireAge=null,baristaAge=null;
+  for(let y=0;y<=sim.nYears;y++){
+    const a=age0+y,v=sim.p50[y];
+    if(coastAge===null && v>=coastLine[y])coastAge=a;
+    if(fireAge===null && v>=fireNum)fireAge=a;
+    if(baristaAge===null && v>=fireNum*0.5)baristaAge=a;
+  }
+  // 一致性守則:Coast 用「確定性 blendedReal 投影」、Full 用「中位 MC 路徑」,兩者成長模型不同。
+  // 若中位路徑到退休時都到不了 FIRE,就談不上「滑行到 FIRE」→ Coast 不算達成(消除 Coast早/Full永遠 的矛盾)。
+  const rIdx=Math.max(0,Math.min(sim.nYears,retire-age0));
+  const medAtRetire=sim.p50[rIdx];
+  const coastConsistent=(medAtRetire>=fireNum); // 中位在退休時已達 FIRE → coast 才有意義
+  if(coastAge!==null && !coastConsistent) coastAge=null;
+  return {coastLine,coastAge,fireAge,baristaAge,medAtRetire,coastConsistent};
+}
+
+// ---------- 主流程(分頁懶算 + 開始計算)----------
+let chartData=null, lastCore=null;
+let inputsVer=0, coreVer=-1, riskVer=-1, busy=false;
+
+// 從輸入欄位蒐集所有衍生參數(便宜、純讀 DOM)
+function gatherInputs(){
+  const carryDrag=(+$('carry').value)/100;
+  const defs=assetDefs(carryDrag);
+  refreshL2Display();
+  const w=getWeights();
+  const age0=+$('age').value, retire=+$('retire').value;
+  const net0=+$('net').value, mon=+$('mon').value, exp=+$('exp').value;
+  const pension=+$('pension').value;
+  const infl=(+$('infl').value)/100, swr=(+$('swr').value)/100;
+  const maxAge=Math.max(retire+25,90);
+  const annualContrib=mon*12;
+  const blendedReal=blendedMuNom(w,defs)-infl;
+  const dcaMonths=Math.max(0,+$('dcaMonths').value||0), dcaTranches=dcaMonths>0?dcaMonths:1; // 每月一筆
+  const glide=+($('glide').value||0), glideStart=+($('glideStart').value||45);
+  const mech=$('mech').value||'both';
+  const withdraw=Math.max(0,exp-pension); // 退休後每年提領(實質)
+  const flexWithdraw=+($('flexW')?$('flexW').value:0)===1;
+  const engine=$('engine')?$('engine').value:'param';
+  const opts={age0,maxAge,retire,annualContrib,infl,paths:1500,net0,blendedReal,dcaMonths,dcaTranches,glide,glideStart,mech,withdraw,flexWithdraw,engine,volDrag:getVolDrag(),carryDrag,qldFin:getFin()};
+  const fireNum=Math.max(0,(exp-pension))/swr; // 私人本金需求(扣年金)
+  const fireNumFull=exp/swr;
+  return {carryDrag,defs,w,age0,retire,net0,mon,exp,pension,infl,swr,maxAge,annualContrib,dcaMonths,opts,fireNum,fireNumFull,mech,withdraw,flexWithdraw};
+}
+
+// 任何輸入改動 → 標記結果過期(不自動重算)
+function markDirty(){
+  inputsVer++;
+  document.querySelectorAll('#tabs button[data-tab="2"],#tabs button[data-tab="3"]').forEach(b=>b.classList.add('stale'));
+  if($('ctaHint'))$('ctaHint').innerHTML='設定已變更,按「▶ 開始計算」更新結果。';
+  if($('status'))$('status').textContent='';
+}
+function setProg(el,frac){if(!el)return;el.classList.add('show');el.querySelector('span').style.width=Math.round(frac*100)+'%';}
+function hideProg(el){if(el){el.classList.remove('show');el.querySelector('span').style.width='0';}}
+
+// 主結果(③④):主模擬 + 基準線(共 2 次模擬)
+function computeCore(done){
+  if(busy)return;busy=true;
+  if($('startBtn'))$('startBtn').disabled=true;
+  setProg($('coreProg'),0.12);if($('status'))$('status').textContent='計算中…';
+  if($('coreStatus'))$('coreStatus').textContent='⏳ 計算中…(蒙地卡羅模擬,約 2~3 秒)';
+  setTimeout(()=>{
+    const ci=gatherInputs();
+    const {carryDrag,defs,w,opts,age0,retire,net0,annualContrib,infl,maxAge,exp,pension,fireNum,fireNumFull,dcaMonths,withdraw,flexWithdraw}=ci;
+    const sim=simulate(w,defs,opts);
+    setProg($('coreProg'),0.6);
+    const ms=milestones(sim,opts,fireNum);
+    const benchW={};ORDER.forEach(k=>benchW[k]=0);benchW.TW50=1;
+    const benchSim=simulate(benchW,defs,Object.assign({},opts,{mech:'bh',dcaMonths:0,dcaTranches:1,glide:0,paths:1000}));
+    setProg($('coreProg'),0.9);
+    lastCore={ci,sim,benchSim,ms};
+    // 里程碑卡
+    $('coastAge').textContent=ms.coastAge?(ms.coastAge<=age0?age0+'歲(已達成)':ms.coastAge+'歲'):'未達成';
+    $('fireAge').textContent=ms.fireAge?(ms.fireAge<=age0?'已達成':ms.fireAge+'歲'):'>'+maxAge+'歲';
+    $('baristaAge').textContent=ms.baristaAge?(ms.baristaAge<=age0?'已達成':ms.baristaAge+'歲'):'>'+maxAge+'歲';
+    $('coastR').textContent=ms.coastAge
+      ? `此後即使停止月投,也能滾到 FIRE(退休 ${retire} 歲)`
+      : `中位情境到退休 ${retire} 歲僅 ${fmtW(ms.medAtRetire)} < FIRE ${fmtW(fireNum)} → 還到不了,需提高報酬/多存/降支出`;
+    $('fireNum').textContent=fmtW(fireNum);
+    $('fireNumNom').textContent=pension>0
+      ? `扣掉年金 ${pension}萬/年後、需自己存的本金。完整需求 ${fmtW(fireNumFull)}(= 年支出 ${exp}萬 ÷ ${$('swr').value}%)。`
+      : `= 年支出 ${exp}萬 ÷ 提領率 ${$('swr').value}%。`;
+    const pFire=fracGE(sim.VatRetire,fireNum);
+    const pDD=fracGEdd(sim.maxDDarr,0.5);
+    $('pFire').textContent=pct(pFire);$('pFire').className=pFire>0.7?'good':(pFire>0.4?'warn':'bad');
+    $('pDD').textContent=pct(pDD);$('pDD').className=pDD>0.5?'bad':(pDD>0.25?'warn':'good');
+    // 最大回撤(全期會經歷的最深帳面虧損):中位 + 壞情境 P90
+    const ddb=$('ddBox');
+    if(ddb){
+      const ddMed=percentile(sim.maxDDarr,0.5), ddP90=percentile(sim.maxDDarr,0.9);
+      const cMed=ddMed>0.6?'var(--bad)':(ddMed>0.4?'var(--warn)':'var(--good)');
+      const cP90=ddP90>0.7?'var(--bad)':(ddP90>0.5?'var(--warn)':'var(--good)');
+      ddb.style.display='flex';ddb.style.alignItems='center';ddb.style.gap='18px';ddb.style.flexWrap='wrap';
+      ddb.innerHTML=`<div style="flex:none"><div class="small mut">📉 最大回撤(全期一度的最深帳面虧損)</div>`+
+        `<div style="font-size:15px;font-weight:600;margin-top:3px">中位 <b style="font-size:24px;color:${cMed}">−${(ddMed*100).toFixed(0)}%</b>　│　壞情境(P90)<b style="font-size:24px;color:${cP90}">−${(ddP90*100).toFixed(0)}%</b></div></div>`+
+        `<div class="small mut" style="flex:1;min-width:220px">這是你的帳戶<b>從高點到谷底一度蒸發的比例</b>(非永久虧損,事後通常會修復)。槓桿/曝險越高,數字越大。<b>上槓桿前,先確認自己「真的跌成這樣也抱得住、不會砍在最低點」。</b>「壞情境 P90」=每 10 種情境有 1 種會更慘。</div>`;
+    }
+    // 中位路徑隱含年化(資金加權 IRR)
+    const yrs=retire-age0;
+    const medV=percentile(sim.VatRetire,0.5),p10V=percentile(sim.VatRetire,0.10),p90V=percentile(sim.VatRetire,0.90);
+    if(yrs>0){
+      const realMed=impliedCAGR(net0,annualContrib,yrs,medV);
+      const nomMed=(1+realMed)*(1+infl)-1;
+      const nomP10=(1+impliedCAGR(net0,annualContrib,yrs,p10V))*(1+infl)-1;
+      const nomP90=(1+impliedCAGR(net0,annualContrib,yrs,p90V))*(1+infl)-1;
+      const inputMu=blendedMuNom(w,defs);
+      const edMed=percentile(sim.early3,0.5), edP90=percentile(sim.early3,0.90);
+      const dcaTxt=dcaMonths>0?`分批 ${dcaMonths} 月(每月一筆)`:'一次全投';
+      $('cagrReadout').innerHTML=`📊 <b>中位路徑(P50)隱含年化:名目 ${pct(nomMed)} ／ 實質 ${pct(realMed)}</b>`+
+        `　<span class="small mut">區間 P10 ${pct(nomP10)} ～ P90 ${pct(nomP90)}(名目)</span><br>`+
+        (ci.opts.engine==='hist'
+          ? `<span class="small mut">📈 <b>歷史重抽模式</b>:報酬來自<b>美股+美債 1928–2024 真實年報酬</b>整段抽樣,中位數<b>由歷史決定</b>(不等於你設的假設 ${pct(inputMu)})。台股/QQQ 以美股史代理、年內已平滑,槓桿/債/現金各依規則套用。詳見 ① 引擎說明。</span><br>`
+          : `<span class="small mut">各標的「基準年化」當作<b>幾何(中位)報酬</b>,以對數常態模擬,故中位路徑會<b>貼齊</b>你的混合假設 <b>${pct(inputMu)}</b>。槓桿波動耗損已內含在基準年化裡,不再重複扣。此為累積期資金加權報酬(IRR)。</span><br>`)+
+        `<span class="small">📉 <b>進場頭 3 年最大回撤</b>(${dcaTxt}):中位 <b class="warn">${pct(edMed)}</b> ／ 壞情境 P90 <b class="bad">${pct(edP90)}</b>。<span class="mut">把「分批月數」拉長 → 這個數字變小(降低買在頂部的進場風險),代價是長期中位報酬略降。</span></span>`;
+    } else {
+      $('cagrReadout').innerHTML=`<span class="small mut">已屆退休年齡,無累積期年化可計算。</span>`;
+    }
+    // 退休成功率(真實提領模擬)
+    const sb=$('successBox');
+    if(sb){
+      const sr=sim.survive.reduce((s,v)=>s+v,0)/sim.survive.length;
+      const legacy=percentile(sim.Vfinal,0.5), retYears=maxAge-retire;
+      if(withdraw>0 && retYears>0){
+        sb.style.display='flex';sb.style.alignItems='center';sb.style.gap='14px';sb.style.flexWrap='wrap';
+        const col=sr>0.85?'var(--good)':(sr>0.7?'var(--warn)':'var(--bad)');
+        const verdict=sr>0.9?'很穩':sr>0.8?'大致夠':sr>0.65?'偏緊(考慮降支出/晚退/多存)':'不足,需明顯調整';
+        sb.innerHTML=`<div style="flex:none"><div class="small mut">🏁 退休成功率(錢夠用到 ${maxAge} 歲)</div><div style="font-size:27px;font-weight:700;color:${col}">${pct(sr)}</div></div>`+
+          `<div class="small mut" style="flex:1;min-width:200px">從 ${retire} 歲起每年實質提領 <b>${fmtW(withdraw)}</b>(年支出 ${exp}萬 − 年金 ${pension}萬,<b>${flexWithdraw?'彈性提領,跌時少花':'固定提領'}</b>),撐到 ${maxAge} 歲<b>不把錢花完</b>的比例。中位剩餘遺產 <b>${fmtW(legacy)}</b>。<b style="color:${col}">${verdict}</b>。${flexWithdraw?'':'<b>切到「彈性提領」可明顯提高此數字。</b>'}此為真實提領模擬(比 SWR 反推更直接,序列風險會反映在這)。</div>`;
+      } else {
+        sb.style.display='block';
+        sb.innerHTML=`<span class="small mut">🏁 退休成功率:年金已覆蓋全部年支出(或退休年齡已到),無需從本金提領。</span>`;
+      }
+    }
+    applyDisplayMode(); // 建 chartData + 畫圖
+    coreVer=inputsVer;
+    const b2=document.querySelector('#tabs button[data-tab="2"]');if(b2)b2.classList.remove('stale');
+    if($('status'))$('status').textContent='完成 · 淨曝險 '+(netExposure(w)*100).toFixed(0)+'% · 混合名目年化 '+pct(blendedMuNom(w,defs));
+    if($('ctaHint'))$('ctaHint').innerHTML='✓ 已計算。切到上方「2 · 結果 / 3 · 風險與對照」分頁查看。';
+    saveSettings();
+    hideProg($('coreProg'));
+    if($('coreStatus')){
+      $('coreStatus').innerHTML=ci.opts.engine==='hist'
+        ? '📈 <b>引擎:歷史重抽</b>(美股+美債 1928–2024 真實序列)— 此投影含真實的失落十年/序列風險,<b>槓桿風險會比參數化更明顯</b>。'
+        : '📊 引擎:參數化抽樣(平滑假設)。想壓力測真實多年逆境 → 到 ① 切「歷史重抽」。';
+    }
+    if($('startBtn'))$('startBtn').disabled=false;
+    busy=false;
+    done&&done();
+  },30);
+}
+
+// 依顯示模式(實質/名目)重建主圖資料 — 不需重新模擬
+function applyDisplayMode(){
+  if(!lastCore)return;
+  const {sim,benchSim,ms,ci}=lastCore;
+  const {infl,fireNum,retire,age0}=ci;
+  const mode=$('dispmode').value;
+  const ages=[];for(let y=0;y<=sim.nYears;y++)ages.push(age0+y);
+  const conv=(v,y)=>mode==='nom'?v*Math.pow(1+infl,y):v;
+  chartData={
+    ages,
+    p10:sim.p10.map((v,y)=>conv(v,y)),
+    p50:sim.p50.map((v,y)=>conv(v,y)),
+    p90:sim.p90.map((v,y)=>conv(v,y)),
+    bench:benchSim.p50.map((v,y)=>conv(v,y)),
+    coast:ms.coastLine.map((v,y)=>isFinite(v)?conv(v,y):NaN),
+    fire:ages.map((a,y)=>conv(fireNum,y)),
+    retire, coastAge:ms.coastAge, fireAge:ms.fireAge, age0
+  };
+  drawChart();
+}
+
+// 風險與對照(⑤⑥):較重的 12 次模擬,分 4 步、步間顯示進度
+function computeRisk(done){
+  const ci=gatherInputs();
+  const steps=[
+    ['標的對照',()=>buildCompare(ci.opts,ci.exp,ci.pension,ci.swr,ci.carryDrag)],
+    ['機制對照',()=>buildMechCompare(ci.opts,ci.defs)],
+    ['壓力測試',()=>buildStress(ci.carryDrag)],
+    ['歷史崩盤壓測',()=>buildScenarios(ci.carryDrag)],
+  ];
+  busy=true;let i=0;
+  (function next(){
+    if(i>=steps.length){
+      hideProg($('riskProg'));if($('riskStatus'))$('riskStatus').textContent='✓ 完成';
+      setTimeout(()=>{if($('riskStatus')&&riskVer===inputsVer)$('riskStatus').textContent='';},1500);
+      riskVer=inputsVer;
+      const b3=document.querySelector('#tabs button[data-tab="3"]');if(b3)b3.classList.remove('stale');
+      busy=false;done&&done();return;
+    }
+    setProg($('riskProg'),i/steps.length);
+    if($('riskStatus'))$('riskStatus').textContent=`計算中… (${i+1}/${steps.length}) ${steps[i][0]}`;
+    setTimeout(()=>{steps[i][1]();i++;next();},30);
+  })();
+}
+
+function ensureCore(done){
+  if(coreVer===inputsVer && lastCore){done&&done();return;}
+  if(busy){setTimeout(()=>ensureCore(done),200);return;}
+  computeCore(done);
+}
+function ensureRisk(){
+  if(riskVer===inputsVer)return;
+  if(busy){setTimeout(ensureRisk,200);return;}
+  computeRisk();
+}
+
+// 分頁切換
+function showTab(n){
+  for(let k=0;k<=4;k++){const s=$('tab'+k);if(s)s.style.display=(k===n)?'':'none';}
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',+b.dataset.tab===n));
+  if(n===2)ensureCore(()=>{if(chartData)drawChart();});
+  if(n===3)ensureRisk();
+  window.scrollTo(0,0);
+}
+
+// 新手入門:出發前自我檢查
+function updatePreflight(){
+  const n=['chk1','chk2','chk3','chk4'].filter(id=>$(id)&&$(id).checked).length;
+  const m=$('preflightMsg');if(!m)return;
+  if(n===0){m.textContent='';return;}
+  if(n===4){m.style.color='var(--good)';m.textContent='✓ 太好了,地基都打穩了!即使如此,還是建議你從「低淨曝險」開始,一步一步慢慢加,不用著急。';}
+  else{m.style.color='var(--warn)';m.textContent='還有 '+(4-n)+' 項還沒勾起來唷。建議先把這些準備好,你會更安心——尤其,千萬別用「賠不起的錢」去開槓桿。';}
+}
+// 新手:載入無槓桿的安全範例
+function loadSafeExample(){
+  const safe={VT:60,VTI:0,VOO:0,TW50:10,QQQ:0,L2:0,QLD:0,CASH:10,BOND:20,GOLD:0};
+  ORDER.forEach(k=>{const el=$('n_'+k);if(el)el.value=safe[k]||0;});
+  if($('mech'))$('mech').value='rebal';
+  if($('glide'))$('glide').value='0';
+  updateWsum();markDirty();showTab(1);
+}
+
+// ---------- 圖 ----------
+function drawChart(){
+  const d=chartData;if(!d)return;
+  const cv=$('mainChart');const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;const W=cv.clientWidth,H=360;
+  cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  const ml=66,mr=14,mt=14,mb=30,pw=W-ml-mr,ph=H-mt-mb;
+  // y range (log)
+  let yMin=Infinity,yMax=-Infinity;
+  const all=d.p10.concat(d.p90,d.fire,d.bench||[]);
+  all.forEach(v=>{if(isFinite(v)&&v>0){yMin=Math.min(yMin,v);yMax=Math.max(yMax,v);}});
+  d.coast.forEach(v=>{if(isFinite(v)&&v>0)yMax=Math.max(yMax,Math.min(v,yMax*3||v));});
+  yMin=Math.max(1,yMin*0.8);yMax=yMax*1.15;
+  const lyMin=Math.log10(yMin),lyMax=Math.log10(yMax);
+  const xs=a=>ml+(a-d.age0)/(d.ages[d.ages.length-1]-d.age0)*pw;
+  const ys=v=>mt+(1-(Math.log10(Math.max(v,yMin))-lyMin)/(lyMax-lyMin))*ph;
+  // grid (log decades + 2,5)
+  ctx.font='11px system-ui';ctx.fillStyle='#7f93a6';ctx.strokeStyle='#26323f';ctx.lineWidth=1;
+  for(let e=Math.floor(lyMin);e<=Math.ceil(lyMax);e++){
+    [1,2,5].forEach(mant=>{
+      const v=mant*Math.pow(10,e);if(v<yMin||v>yMax)return;
+      const y=ys(v);ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(ml+pw,y);ctx.stroke();
+      ctx.fillText(fmtW(v),6,y+3);
+    });
+  }
+  // x ticks every 5 yrs
+  for(let a=d.age0;a<=d.ages[d.ages.length-1];a+=5){
+    const x=xs(a);ctx.fillText(a+'歲',x-10,H-10);
+    ctx.strokeStyle='#1e2832';ctx.beginPath();ctx.moveTo(x,mt);ctx.lineTo(x,mt+ph);ctx.stroke();
+  }
+  // band P10-P90
+  ctx.fillStyle='rgba(79,195,247,.16)';ctx.beginPath();
+  d.ages.forEach((a,i)=>{const x=xs(a),y=ys(d.p90[i]);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  for(let i=d.ages.length-1;i>=0;i--){const x=xs(d.ages[i]),y=ys(d.p10[i]);ctx.lineTo(x,y);}
+  ctx.closePath();ctx.fill();
+  // line helper
+  const line=(arr,color,dash)=>{ctx.strokeStyle=color;ctx.lineWidth=2;ctx.setLineDash(dash||[]);ctx.beginPath();
+    let started=false;d.ages.forEach((a,i)=>{const v=arr[i];if(!isFinite(v))return;const x=xs(a),y=ys(v);started?ctx.lineTo(x,y):ctx.moveTo(x,y);started=true;});ctx.stroke();ctx.setLineDash([]);};
+  line(d.coast,'#43a047',[6,5]);
+  line(d.fire,'#fb8c00',[6,5]);
+  if(d.bench)line(d.bench,'#9aa7b3',[2,3]); // 純0050躺平基準
+  line(d.p50,'#4fc3f7');
+  // retire vertical
+  ctx.strokeStyle='#b0bec5';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(xs(d.retire),mt);ctx.lineTo(xs(d.retire),mt+ph);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#b0bec5';ctx.fillText('退休 '+d.retire,xs(d.retire)-18,mt+10);
+  // markers
+  const mark=(age,arr,label,color)=>{if(!age)return;const i=age-d.age0;if(i<0||i>=d.ages.length)return;const x=xs(age),y=ys(arr[i]);
+    ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,4,0,7);ctx.fill();ctx.fillText(label+age+'歲',x+6,y-6);};
+  mark(d.coastAge,d.p50,'Coast ','#43a047');
+  mark(d.fireAge,d.p50,'FIRE ','#fb8c00');
+}
+window.addEventListener('resize',()=>drawChart());
+
+// ---------- 標的對照 ----------
+function buildCompare(baseOpts,exp,pension,swr,carryDrag){
+  const defs=assetDefs(carryDrag);
+  const fireNum=Math.max(0,(exp-pension))/swr;
+  const presets=[
+    {n:'100% VT',w:{VT:1}},
+    {n:'100% VTI',w:{VTI:1}},
+    {n:'100% 0050',w:{TW50:1}},
+    {n:'100% QQQ',w:{QQQ:1}},
+    {n:'100% 正二(歐印)',w:{L2:1}},
+    {n:'50%正二+50%現金',w:{L2:0.5,CASH:0.5}},
+    {n:'35%正二+65%現金',w:{L2:0.35,CASH:0.65}},
+    {n:'★ 你目前配置',w:getWeights()},
+  ];
+  const o=Object.assign({},baseOpts,{paths:800});
+  const tb=$('cmp').querySelector('tbody');tb.innerHTML='';
+  presets.forEach(pr=>{
+    const w={};ORDER.forEach(k=>w[k]=pr.w[k]||0);
+    const br=blendedMuNom(w,defs);
+    const oo=Object.assign({},o,{blendedReal:br-baseOpts.infl});
+    const sim=simulate(w,defs,oo);
+    const ms=milestones(sim,oo,fireNum);
+    const vMed=percentile(sim.VatRetire,0.5),vP10=percentile(sim.VatRetire,0.10);
+    const ddMed=percentile(sim.maxDDarr,0.5);
+    const tr=document.createElement('tr');
+    const isYou=pr.n.startsWith('★');
+    tr.innerHTML=`<td>${isYou?'<b>'+pr.n+'</b>':pr.n}</td><td>${pct(br)}</td>
+      <td>${ms.coastAge?ms.coastAge+'歲':'—'}</td><td>${fmtW(vMed)}</td>
+      <td class="${vP10<fireNum?'bad':''}">${fmtW(vP10)}</td>
+      <td class="${ddMed>0.6?'bad':(ddMed>0.45?'warn':'')}">${pct(ddMed)}</td>`;
+    if(isYou)tr.style.background='#16222c';
+    tb.appendChild(tr);
+  });
+}
+
+// ---------- 機制對照(同配置,換不同現金回市場機制)----------
+function buildMechCompare(baseOpts,defs){
+  const w=getWeights();
+  const br=blendedMuNom(w,defs);
+  const o=Object.assign({},baseOpts,{paths:1000,blendedReal:br-baseOpts.infl});
+  const mechs=[
+    {n:'純偏離帶再平衡',m:'rebal',ph:'不預測(Merton)'},
+    {n:'再平衡 + 崩盤加碼',m:'both',ph:'平衡'},
+    {n:'純崩盤加碼 −12/−22/−32/−42',m:'reserve',ph:'逆勢/賭反彈'},
+    {n:'深觸發原型(正二 −50/−80)',m:'orig',ph:'逆勢/賭反彈'},
+    {n:'買進持有(不調整)',m:'bh',ph:'—'},
+  ];
+  const curMech=$('mech')?$('mech').value:'both';
+  const tb=$('mcmp').querySelector('tbody');tb.innerHTML='';
+  mechs.forEach(mc=>{
+    const sim=simulate(w,defs,Object.assign({},o,{mech:mc.m}));
+    const vMed=percentile(sim.VatRetire,0.5),vP10=percentile(sim.VatRetire,0.10),vP90=percentile(sim.VatRetire,0.90),ddMed=percentile(sim.maxDDarr,0.5);
+    const isCur=mc.m===curMech;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${isCur?'<b>▸ '+mc.n+'(目前)</b>':mc.n}</td><td>${fmtW(vMed)}</td>`+
+      `<td>${fmtW(vP10)}</td><td>${fmtW(vP90)}</td>`+
+      `<td class="${ddMed>0.65?'bad':(ddMed>0.5?'warn':'')}">${pct(ddMed)}</td><td class="small mut">${mc.ph}</td>`;
+    if(isCur)tr.style.background='#16222c';
+    tb.appendChild(tr);
+  });
+}
+
+// ---------- 歷史情境壓測(確定性,套到使用者配置)----------
+// depth=谷底跌幅, down=崩跌月數, up=修復回到前高月數, tail=之後月數, tailAnn=尾段年化(模擬崩盤後創新高多頭;失落十年設0=盤整不回)
+function scenPath(depth,down,up,tail,tailAnn){const r=[];const dD=Math.pow(1-depth,1/down)-1;for(let i=0;i<down;i++)r.push(dD);if(up>0){const dU=Math.pow(1/(1-depth),1/up)-1;for(let i=0;i<up;i++)r.push(dU);}const dT=Math.pow(1+(tailAnn||0),1/12)-1;for(let i=0;i<tail;i++)r.push(dT);return r;}
+// 依年份由久到近排序(1990 → 2000 → 2008 → 2020)
+const SCEN=[
+  {n:'1990 失落十年(日本式)',sub:'日本 1989 見頂、1990 泡沫破裂後盤整數十年不回(槓桿死穴)',depth:0.50,down:18,up:0,tail:102,tailAnn:0},
+  {n:'2000 網路泡沫',sub:'大盤 −49%、慢崩慢回(QQQ最慘)',depth:0.49,down:30,up:60,tail:18,tailAnn:0.07},
+  {n:'2008 金融海嘯',sub:'大盤 −50%、約1年崩、2年回、後續多頭',depth:0.50,down:14,up:24,tail:24,tailAnn:0.08},
+  {n:'2020 COVID',sub:'大盤 −34%、急崩 V 轉、後續急漲',depth:0.34,down:2,up:5,tail:17,tailAnn:0.10},
+];
+SCEN.forEach(function(s){s.r=scenPath(s.depth,s.down,s.up,s.tail,s.tailAnn);s.months=s.down+s.up+s.tail;});
+function scenRun(w,defs,p){
+  let tot=0;ORDER.forEach(k=>tot+=w[k]);const wn={};ORDER.forEach(k=>wn[k]=tot>0?w[k]/tot:0);
+  const active=ORDER.filter(k=>wn[k]>1e-9);const mech=p.mech||'both',carry=p.carryDrag||0.03,fin=p.fin||0.04;
+  const leverKeys=active.filter(k=>k==='L2'||k==='QLD');let leverW=0;leverKeys.forEach(k=>leverW+=wn[k]);
+  const THR=mech==='orig'?[-0.25,-0.40]:[-0.12,-0.22,-0.32,-0.42],POR=mech==='orig'?[0.5,0.5]:[0.1,0.2,0.3,0.4];
+  const net0=100,h={};active.forEach(k=>h[k]=wn[k]*net0);
+  const ret=(k,rm)=>{if(k==='L2')return Math.pow(1+rm,2)-1-(0.013+carry)/12;if(k==='QLD')return Math.pow(1+rm,2)-1-(0.0095+fin)/12;if(k==='CASH')return 0;if(k==='BOND')return 0.003;if(k==='GOLD')return 0.002;return rm;};
+  let mkt=1,peak=1,reserveBase=h['CASH']||0,fired=[0,0,0,0],pV=net0,trough=0,recM=-1;
+  for(let i=0;i<p.mr.length;i++){const rm=p.mr[i];
+    active.forEach(k=>h[k]*=(1+ret(k,rm)));mkt*=(1+rm);
+    let V=0;active.forEach(k=>V+=h[k]);
+    if(mech==='rebal'||mech==='both'){let dev=0;active.forEach(k=>{const tw=wn[k];if(tw>0.02){const d=Math.abs(h[k]/V-tw)/tw;if(d>dev)dev=d;}});if(dev>0.5)active.forEach(k=>h[k]=wn[k]*V);}
+    if(mech==='reserve'||mech==='orig'||mech==='both'){
+      if(mkt>=peak){peak=mkt;fired=[0,0,0,0];if(mech!=='both')active.forEach(k=>h[k]=wn[k]*V);reserveBase=h['CASH']||0;}
+      else if(leverW>0&&(h['CASH']||0)>0){const dd=mkt/peak-1;for(let j=0;j<THR.length;j++)if(dd<=THR[j]&&!fired[j]){const amt=Math.min(POR[j]*reserveBase,h['CASH']);if(amt>0){h['CASH']-=amt;leverKeys.forEach(k=>h[k]+=amt*(wn[k]/leverW));}fired[j]=1;}}
+    }else{if(mkt>peak)peak=mkt;}
+    V=0;active.forEach(k=>V+=h[k]);if(V>pV)pV=V;const dd=(pV-V)/pV;if(dd>trough)trough=dd;
+    if(recM<0&&i>2&&V>=net0)recM=i;
+  }
+  let endV=0;active.forEach(k=>endV+=h[k]);
+  return{trough,endMult:endV/net0,recovYears:recM<0?null:recM/12};
+}
+function ddCls(t){return t>0.6?'bad':(t>0.4?'warn':'');}
+// perm=此情境連純0050都回不了(=市場本身不反彈,非策略的錯)
+function recCell(r,perm,isBench){
+  if(r.recovYears!=null)return r.recovYears.toFixed(1)+' 年';
+  if(perm)return '<span class="mut">—(市場本身不反彈)</span>';
+  return '<b class="bad">⚠️ 仍虧損(0050已回本)</b>'; // 只有你的槓桿配置回不了→真警訊
+}
+function buildScenarios(carryDrag){
+  const w=getWeights(),defs=assetDefs(carryDrag),bw={};ORDER.forEach(k=>bw[k]=0);bw.TW50=1;
+  const p={mech:$('mech')?$('mech').value:'both',carryDrag,fin:getFin()};
+  const tb=$('scen').querySelector('tbody');if(!tb)return;tb.innerHTML='';
+  SCEN.forEach(sc=>{
+    const ru=scenRun(w,defs,Object.assign({},p,{mr:sc.r}));
+    const r0=scenRun(bw,defs,{mech:'bh',carryDrag,fin:getFin(),mr:sc.r});
+    const perm=(r0.recovYears==null),yrs=(sc.months/12).toFixed(1);
+    const tr1=document.createElement('tr');
+    tr1.innerHTML=`<td rowspan="2"><b>${sc.n}</b><br><span class="small mut">總長 ${yrs} 年 · ${sc.sub}</span></td>`+
+      `<td>你的配置</td><td class="${ddCls(ru.trough)}">−${(ru.trough*100).toFixed(0)}%</td>`+
+      `<td>${recCell(ru,perm,false)}</td><td class="${ru.endMult<1?'bad':''}">${ru.endMult.toFixed(2)}×</td>`;
+    const tr2=document.createElement('tr');
+    tr2.innerHTML=`<td class="mut">純0050 基準</td><td class="mut">−${(r0.trough*100).toFixed(0)}%</td>`+
+      `<td class="mut">${recCell(r0,perm,true)}</td><td class="mut">${r0.endMult.toFixed(2)}×</td>`;
+    tb.appendChild(tr1);tb.appendChild(tr2);
+  });
+  const ib=$('sceninfo')?$('sceninfo').querySelector('tbody'):null;
+  if(ib){ib.innerHTML='';SCEN.forEach(sc=>{
+    const tl=sc.tailAnn>0?('多頭 +'+(sc.tailAnn*100).toFixed(0)+'%/年'):'盤整 0%(不回)';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${sc.n}</td><td>${sc.down} 月</td><td>${sc.up===0?'—(不回)':sc.up+' 月'}</td><td>${sc.tail} 月 · ${tl}</td><td><b>${sc.months} 月 ≈ ${(sc.months/12).toFixed(1)} 年</b></td>`;
+    ib.appendChild(tr);
+  });}
+}
+
+// ---------- 壓力測試(確定性) ----------
+function l2year(mkt,carryDrag){return Math.pow(1+mkt,2)-1-0.013-carryDrag;}
+function runStrategy(mkts,mode,carryDrag){
+  // start 100萬
+  let cash,l2,t50;
+  if(mode==='t50'){t50=100;cash=0;l2=0;}
+  else{l2=50;cash=50;t50=0;} // static 50/50 or reserve
+  const reserve0=50;let deployed=0;let peak=1,cum=1;
+  const thresholds=[-0.12,-0.22,-0.32,-0.42];const portions=[0.1,0.2,0.3,0.4];
+  mkts.forEach((mkt,i)=>{
+    // update market cumulative & drawdown (for deploy decision, pre-return)
+    // grow assets
+    if(mode==='t50')t50*=(1+(mkt-0.003));
+    else{l2*=(1+l2year(mkt,carryDrag));cash*=1.015;}
+    cum*=(1+mkt);if(cum>peak)peak=cum;
+    const dd=(cum-peak)/peak;
+    if(mode==='reserve'){
+      // 大盤回撤跨過門檻 → 把初始準備金按 1:2:3:4 分批投入正二(一次性)
+      for(let j=0;j<thresholds.length;j++){
+        if(dd<=thresholds[j] && deployFlags[j]===false){
+          const amt=reserve0*portions[j];
+          const take=Math.min(amt,cash);cash-=take;l2+=take;deployFlags[j]=true;
+        }
+      }
+    }
+  });
+  return (mode==='t50')?t50:(l2+cash);
+}
+let deployFlags=[false,false,false,false];
+function buildStress(carryDrag){
+  const noCrash=[0.08,0.08,0.08,0.08,0.08,0.08];
+  const crash=[0.08,-0.45,0.20,0.20,0.15,0.10];
+  const host=$('stress');host.innerHTML='';
+  [['無崩盤(一路緩漲)',noCrash,'good'],['有崩盤(第2年 −45% 後復甦)',crash,'bad']].forEach(([title,mkts,cls])=>{
+    deployFlags=[false,false,false,false];const a=runStrategy(mkts,'t50',carryDrag);
+    deployFlags=[false,false,false,false];const b=runStrategy(mkts,'static',carryDrag);
+    deployFlags=[false,false,false,false];const c=runStrategy(mkts,'reserve',carryDrag);
+    const max=Math.max(a,b,c,100);
+    const row=(label,val,color)=>{
+      const wd=clamp(val/max*100,2,100);
+      return `<div class="small">${label} → <b>${val.toFixed(0)}萬</b>(${((val/100-1)*100).toFixed(0)}%)</div>
+        <div class="bar"><span style="width:${wd}%;background:${color}"></span></div>`;
+    };
+    const div=document.createElement('div');div.className='sbox';
+    div.innerHTML=`<h4 class="${cls}">${title}</h4>`+
+      row('純 0050',a,'#f9a825')+
+      row('50%正二+50%現金(靜態)',b,'#4fc3f7')+
+      row('正二+準備金(照表加碼)',c,'#43a047');
+    host.appendChild(div);
+  });
+}
+
+// ---------- 讀取自動估算的逆價差(GitHub Action 每月更新的 carry.json)----------
+async function loadCarry(applyToSlider){
+  const info=$('carryInfo');if(!info)return;
+  info.textContent='讀取中…';
+  try{
+    const res=await fetch('carry.json?t='+Date.now());
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const c=await res.json();
+    if(applyToSlider && typeof c.recommendedCarry==='number'){
+      $('carry').value=clamp(c.recommendedCarry,-1,5);
+    }
+    refreshL2Display();
+    const w=c.windows||{};
+    info.innerHTML=`✓ 預設 = 近5年平均拖累 <b>≈ +${c.recommendedCarry}%/年</b>`+
+      (w['1y']&&w['5y']?` · <span title="當年明顯高於近5年 = 逆價差正在惡化/反轉,可考慮手動把滑桿拉高一點">當年(近1年) +${w['1y'].carry}% ／ 近5年 +${w['5y'].carry}%</span>`:'')+
+      ` · 更新於 ${c.dataAsOf} · 每月自動 · <span class="warn" title="${(c.note||'').replace(/"/g,'')}">ⓘ粗估</span>`;
+    info.className='mut';
+    markDirty();
+    const act=document.querySelector('#tabs button.active');
+    if(act)showTab(+act.dataset.tab); // 若正在看結果頁→自動重算;在設定頁→不算
+  }catch(e){
+    info.innerHTML='<span class="mut">(本機 file:// 讀不到 carry.json — 部署到 GitHub Pages 後會自動載入。目前用手動預設值。)</span>';
+  }
+}
+
+// ---------- localStorage 記憶設定 ----------
+const LS_KEY='firePlanner_v1';
+const LS_IDS=['age','retire','net','mon','exp','pension','infl','swr','dispmode','dcaMonths','glide','glideStart','mech','flexW','engine','carry','voldrag','qldfin'];
+function saveSettings(){try{const s={};LS_IDS.forEach(id=>{const el=$(id);if(el)s[id]=el.value;});ORDER.forEach(k=>{const el=$('n_'+k);if(el)s['n_'+k]=el.value;});localStorage.setItem(LS_KEY,JSON.stringify(s));}catch(e){}}
+function loadSettings(){try{const raw=localStorage.getItem(LS_KEY);if(!raw)return false;const s=JSON.parse(raw);Object.keys(s).forEach(id=>{const el=$(id);if(el&&s[id]!=null)el.value=s[id];});return true;}catch(e){return false;}}
+
+// ---------- init ----------
+buildWeights();
+const hadSaved=loadSettings();
+function refreshL2Display(){
+  const cd=(+$('carry').value)/100, vd=getVolDrag(), fin=getFin();
+  if($('carryv'))$('carryv').textContent=(cd*100).toFixed(1);
+  if($('voldragv'))$('voldragv').textContent=(vd*100).toFixed(1);
+  if($('qldfinv'))$('qldfinv').textContent=(fin*100).toFixed(1);
+  const l2=l2muNom(cd,vd), qld=qldMuNom(fin,vd);
+  if($('amu_L2'))$('amu_L2').textContent=pct(l2);
+  if($('amu_QLD'))$('amu_QLD').textContent=pct(qld);
+  const cs=cd>=0?`− ${(cd*100).toFixed(1)}%逆價差`:`+ ${(-cd*100).toFixed(1)}%逆價差順風`;
+  if($('l2formula'))$('l2formula').innerHTML=`<b>正二</b> = 2×7% − ${(vd*100).toFixed(1)}%波動耗損 − 1.3%內扣 ${cs} = <b class="warn">${pct(l2)}</b>`;
+  if($('qldformula'))$('qldformula').innerHTML=`<b>QLD</b> = 2×8% − ${(vd*100).toFixed(1)}%波動耗損 − 0.95%內扣 − ${(fin*100).toFixed(1)}%融資 = <b class="warn">${pct(qld)}</b>`;
+}
+$('carry').addEventListener('input',refreshL2Display);
+$('carry').addEventListener('change',markDirty);
+$('voldrag').addEventListener('input',refreshL2Display);
+$('voldrag').addEventListener('change',markDirty);
+$('qldfin').addEventListener('input',refreshL2Display);
+$('qldfin').addEventListener('change',markDirty);
+['age','retire','net','mon','exp','pension','infl','swr','dcaMonths','glide','glideStart','mech','flexW','engine'].forEach(id=>$(id).addEventListener('change',markDirty));
+$('dispmode').addEventListener('change',()=>{if(lastCore)applyDisplayMode();}); // 只切實質/名目顯示,不重新模擬
+document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>showTab(+b.dataset.tab)));
+// ▶ 開始計算:強制重新抽樣 → 算完跳「結果」→ 接著背景把「風險與對照」也算好(切過去就不必再等)
+$('startBtn').addEventListener('click',()=>{coreVer=-1;riskVer=-1;ensureCore(()=>{showTab(2);ensureRisk();});});
+['chk1','chk2','chk3','chk4'].forEach(id=>{const el=$(id);if(el)el.addEventListener('change',updatePreflight);});
+if($('goSetup'))$('goSetup').addEventListener('click',()=>showTab(1));
+if($('loadSafe'))$('loadSafe').addEventListener('click',loadSafeExample);
+refreshL2Display();
+updateWsum(); // 還原設定後刷新圓餅/淨曝險顯示
+$('reloadCarry').addEventListener('click',()=>loadCarry(true));
+if($('resetBtn'))$('resetBtn').addEventListener('click',()=>{try{localStorage.removeItem(LS_KEY);sessionStorage.setItem('fp_afterReset','1');}catch(e){}location.reload();});
+// 一般造訪→停「使用導覽」;但「重設為預設值」後→停「① 設定」(別跳回導覽)
+let _startTab=0;try{if(sessionStorage.getItem('fp_afterReset')){_startTab=1;sessionStorage.removeItem('fp_afterReset');}}catch(e){}
+showTab(_startTab);
+loadCarry(!hadSaved); // 第一次造訪→套用自動逆價差;有存檔→沿用你存的
+</script>
+</body>
+</html>
