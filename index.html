@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Coast FIRE 槓桿規劃器</title>
+<title>Coast FIRE 規劃器</title>
 <style>
   :root{
     --bg:#0f1419; --panel:#1a212b; --panel2:#222c38; --line:#2e3a48;
@@ -436,7 +436,7 @@
     </details>
     <div class="grid g3" style="margin-top:14px">
       <div class="sbox">
-        <div class="small">🎯 目標:你要存到多少(今天購買力)</div>
+        <div class="small" id="fireNumLabel">🎯 目標:你要存到多少(今天購買力)</div>
         <div style="font-size:22px;font-weight:700" id="fireNum">—</div>
         <div class="small mut" id="fireNumNom"></div>
       </div>
@@ -1156,6 +1156,8 @@ function applyDisplayMode(){
   $('fireAge').textContent=ms.fireAge?(ms.fireAge<=age0?'已達成':ms.fireAge+'歲'):'>'+maxAge+'歲';
   $('baristaAge').textContent=ms.baristaAge?(ms.baristaAge<=age0?'已達成':ms.baristaAge+'歲'):'>'+maxAge+'歲';
   
+  $('fireNumLabel').textContent = mode === 'nom' ? '🎯 目標:你要存到多少(未來名目金額)' : '🎯 目標:你要存到多少(今天購買力)';
+
   $('coastR').textContent=ms.coastAge
     ? `此後即使停止月投,也能滾到 FIRE(退休 ${retire} 歲)`
     : `中位情境到退休 ${retire} 歲僅 ${fmtW(curMedAtRetire)} < FIRE ${fmtW(curFireNum)} → 還到不了,需提高報酬/多存/降支出`;
