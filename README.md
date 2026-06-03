@@ -76,8 +76,8 @@ node scripts/update_carry.js  # 重新計算並寫回 carry.json
 
 ## 參考來源(策略概念)
 
-- **大仁哥 / Capufish**(letf.com.tw 部落格、《槓桿 ETF 投資法》、PTT):50:50 槓桿配置、偏離帶再平衡、曝險刻度、生命週期、行為層。
-- **onekoni**(PTT):準備金提列「712」框架 ＋ 崩盤漸進加碼(−12/−22/−32/−42)。
+- **大仁哥**(PTT 帳號 **Capufish**,即「正二哥」 /《槓桿 ETF 投資法》作者):台股「正二槓桿投資法」本體——50:50 槓桿配置、偏離帶再平衡、曝險刻度、生命週期投資法、行為層。
+- **一貓人我的超人**(PTT 帳號 **onekoni** / 正二資金控管實戰版友):台股「正二資金控管與加碼」框架——準備金提列「712」法則(7:1:2 切分)、崩盤漸進加碼正二 −50/−80 深觸發。
 - 學術:Bengen / Trinity(SWR)、Ayres‑Nalebuff(生命週期投資)、Merton / Perold‑Sharpe(固定比例 / CPPI)、Markowitz‑Graham‑Bernstein(50:50 後悔最小化)。
 
 ## ⚠️ 免責聲明
